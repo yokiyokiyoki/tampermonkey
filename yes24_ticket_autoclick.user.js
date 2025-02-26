@@ -274,79 +274,378 @@
         }
         
         console.log("开始创建控制面板...");
+        
+        // 添加自定义样式
+        const styleElement = targetDocument.createElement('style');
+        styleElement.textContent = `
+            #ticketAssistantPanel {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                background-color: rgba(33, 37, 41, 0.95);
+                color: #e9ecef;
+                padding: 0;
+                border-radius: 8px;
+                z-index: 9999;
+                font-size: 14px;
+                width: 280px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                backdrop-filter: blur(5px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                overflow: hidden;
+                transition: all 0.3s ease;
+            }
+            
+            .panel-header {
+                background: linear-gradient(135deg, #4568dc, #3a6073);
+                padding: 12px 15px;
+                color: white;
+                font-weight: bold;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                cursor: move; /* 指示可拖动 */
+                user-select: none; /* 防止文本被选中 */
+            }
+            
+            .panel-title {
+                margin: 0;
+                font-size: 16px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .panel-title-icon {
+                margin-right: 8px;
+                font-size: 18px;
+            }
+            
+            .panel-controls {
+                display: flex;
+                align-items: center;
+            }
+            
+            .panel-pin {
+                margin-left: 8px;
+                cursor: pointer;
+                font-size: 16px;
+                opacity: 0.7;
+                transition: opacity 0.2s;
+            }
+            
+            .panel-pin:hover {
+                opacity: 1;
+            }
+            
+            .panel-pin.pinned {
+                color: #fcc419;
+            }
+            
+            .panel-body {
+                padding: 15px;
+            }
+            
+            .status-group {
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 6px;
+                padding: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .status-item {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5px;
+            }
+            
+            .status-label {
+                color: #adb5bd;
+            }
+            
+            .status-value {
+                font-weight: bold;
+            }
+            
+            .status-value.highlight {
+                color: #20c997;
+            }
+            
+            .seat-types {
+                display: flex;
+                justify-content: space-between;
+                background: rgba(0, 0, 0, 0.15);
+                border-radius: 4px;
+                padding: 8px;
+                margin-bottom: 15px;
+            }
+            
+            .seat-type {
+                text-align: center;
+                flex: 1;
+            }
+            
+            .seat-type-label {
+                font-size: 12px;
+                color: #adb5bd;
+            }
+            
+            .seat-type-value {
+                font-weight: bold;
+                font-size: 16px;
+            }
+            
+            .vip-seat { color: #20c997; }
+            .r-seat { color: #339af0; }
+            .s-seat { color: #fcc419; }
+            
+            .control-group {
+                margin-bottom: 15px;
+            }
+            
+            .btn-group {
+                display: flex;
+                gap: 5px;
+                margin-bottom: 15px;
+            }
+            
+            .btn {
+                background-color: #495057;
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                flex: 1;
+                font-size: 13px;
+                transition: all 0.2s;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .btn:hover {
+                background-color: #6c757d;
+            }
+            
+            .btn-icon {
+                margin-right: 5px;
+            }
+            
+            .btn-primary {
+                background-color: #228be6;
+            }
+            
+            .btn-primary:hover {
+                background-color: #1c7ed6;
+            }
+            
+            .btn-danger {
+                background-color: #fa5252;
+            }
+            
+            .btn-danger:hover {
+                background-color: #e03131;
+            }
+            
+            .option-group {
+                margin-bottom: 10px;
+            }
+            
+            .option-row {
+                display: flex;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+            
+            .option-label {
+                flex: 1;
+                font-size: 13px;
+            }
+            
+            .custom-checkbox {
+                width: 18px;
+                height: 18px;
+                margin-right: 8px;
+            }
+            
+            .custom-select {
+                background-color: #343a40;
+                color: white;
+                border: 1px solid #495057;
+                padding: 5px 8px;
+                border-radius: 4px;
+                font-size: 13px;
+                min-width: 100px;
+            }
+            
+            .debug-section {
+                margin-top: 15px;
+                padding-top: 10px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .small-note {
+                color: #868e96;
+                font-size: 11px;
+                margin-left: 5px;
+            }
+            
+            @keyframes pulse {
+                0% { opacity: 0.6; }
+                50% { opacity: 1; }
+                100% { opacity: 0.6; }
+            }
+            
+            .analyzing {
+                animation: pulse 1.5s infinite;
+            }
+        `;
+        targetDocument.head.appendChild(styleElement);
+        
+        // 创建面板
         const panel = targetDocument.createElement('div');
         panel.id = 'ticketAssistantPanel';
-        panel.style.cssText = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            z-index: 9999;
-            font-size: 14px;
-            max-width: 300px;
-        `;
         
-        let panelHtml = `
-            <h3 style="margin: 0 0 10px 0; color: #fff;">yes24座位分析助手</h3>
-            <p>座位状态: <span id="seatStatus">等待分析...</span></p>
-            <p>可选座位: <span id="availableSeatCount">0</span> 个</p>
-            <p>已选座位: <span id="selectedSeatCount">0</span> 个</p>
-            <div style="margin-top: 5px; font-size: 12px;">
-                <span>VIP座: <span id="vipCount">0</span></span> | 
-                <span>R座: <span id="rCount">0</span></span> | 
-                <span>S座: <span id="sCount">0</span></span>
-            </div>
-            <div style="margin-top: 10px;">
-                <button id="pauseAssistant" style="margin-right: 5px;">暂停</button>
-                <button id="refreshPage">刷新页面</button>
-                <button id="resetSelection" style="margin-left: 5px; background-color: #dc3545; color: white;">重置选择</button>
-            </div>
-            <div style="margin-top: 10px;">
-                <input type="checkbox" id="autoSelectSeat" ${config.autoSelectSeat ? 'checked' : ''}>
-                <label for="autoSelectSeat">自动选择座位</label>
-            </div>
-            <div style="margin-top: 5px;">
-                <label for="preferredGrade">优先等级:</label>
-                <select id="preferredGrade" style="margin-left: 5px;">
-                    <option value="">不限</option>
-                    <option value="VIP" ${config.preferredGrade === 'VIP' ? 'selected' : ''}>VIP席</option>
-                    <option value="R" ${config.preferredGrade === 'R' ? 'selected' : ''}>R席</option>
-                    <option value="S" ${config.preferredGrade === 'S' ? 'selected' : ''}>S席</option>
-                </select>
-            </div>
-            <div style="margin-top: 5px;">
-                <label for="seatCount">选择座位数:</label>
-                <select id="seatCount" style="margin-left: 5px;">
-                    <option value="1" ${config.seatCount === 1 ? 'selected' : ''}>1个</option>
-                    <option value="2" ${config.seatCount === 2 ? 'selected' : ''}>2个</option>
-                    <option value="4" ${config.seatCount === 4 ? 'selected' : ''}>4个</option>
-                    <option value="6" ${config.seatCount === 6 ? 'selected' : ''}>6个</option>
-                </select>
-                <span style="font-size: 11px; color: #ff9;">(最多10个)</span>
-            </div>
-        `;
-        
-        // 调试按钮
-        if (debug) {
-            panelHtml += `
-                <div style="margin-top: 10px; border-top: 1px solid #555; padding-top: 10px;">
-                    <button id="analyzeSeatBtn" style="margin-right: 5px;">分析座位</button>
-                    <button id="highlightSeats">高亮座位</button>
-                </div>
-            `;
+        // 尝试恢复面板位置
+        try {
+            const savedPosition = GM_getValue('panelPosition');
+            if (savedPosition) {
+                panel.style.top = savedPosition.top;
+                panel.style.left = savedPosition.left;
+                panel.style.right = 'auto'; // 如果有保存的位置，清除默认的right值
+            }
+        } catch (e) {
+            console.log("无法恢复面板位置:", e);
         }
+        
+        const panelHtml = `
+            <div class="panel-header" id="panelDragHandle">
+                <h3 class="panel-title">
+                    <span class="panel-title-icon">🎫</span>
+                    Yes24座位助手
+                </h3>
+                <div class="panel-controls">
+                    <span class="panel-pin" id="panelPin" title="固定面板位置">📌</span>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="status-group">
+                    <div class="status-item">
+                        <span class="status-label">状态:</span>
+                        <span id="seatStatus" class="status-value">等待分析...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">可选座位:</span>
+                        <span id="availableSeatCount" class="status-value highlight">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">已选座位:</span>
+                        <span id="selectedSeatCount" class="status-value">0</span>
+                    </div>
+                </div>
+                
+                <div class="seat-types">
+                    <div class="seat-type">
+                        <div class="seat-type-label">VIP座</div>
+                        <div id="vipCount" class="seat-type-value vip-seat">0</div>
+                    </div>
+                    <div class="seat-type">
+                        <div class="seat-type-label">R座</div>
+                        <div id="rCount" class="seat-type-value r-seat">0</div>
+                    </div>
+                    <div class="seat-type">
+                        <div class="seat-type-label">S座</div>
+                        <div id="sCount" class="seat-type-value s-seat">0</div>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button id="pauseAssistant" class="btn">
+                        <span class="btn-icon">⏯️</span>暂停
+                    </button>
+                    <button id="refreshPage" class="btn btn-primary">
+                        <span class="btn-icon">🔄</span>刷新
+                    </button>
+                    <button id="resetSelection" class="btn btn-danger">
+                        <span class="btn-icon">🗑️</span>重置
+                    </button>
+                </div>
+                
+                <div class="option-group">
+                    <div class="option-row">
+                        <input type="checkbox" id="autoSelectSeat" class="custom-checkbox" ${config.autoSelectSeat ? 'checked' : ''}>
+                        <label for="autoSelectSeat" class="option-label">自动选择座位</label>
+                    </div>
+                    
+                    <div class="option-row">
+                        <span class="option-label">优先等级:</span>
+                        <select id="preferredGrade" class="custom-select">
+                            <option value="">不限</option>
+                            <option value="VIP" ${config.preferredGrade === 'VIP' ? 'selected' : ''}>VIP席</option>
+                            <option value="R" ${config.preferredGrade === 'R' ? 'selected' : ''}>R席</option>
+                            <option value="S" ${config.preferredGrade === 'S' ? 'selected' : ''}>S席</option>
+                        </select>
+                    </div>
+                    
+                    <div class="option-row">
+                        <span class="option-label">选择座位数:</span>
+                        <select id="seatCount" class="custom-select">
+                            <option value="1" ${config.seatCount === 1 ? 'selected' : ''}>1个</option>
+                            <option value="2" ${config.seatCount === 2 ? 'selected' : ''}>2个</option>
+                            <option value="4" ${config.seatCount === 4 ? 'selected' : ''}>4个</option>
+                            <option value="6" ${config.seatCount === 6 ? 'selected' : ''}>6个</option>
+                        </select>
+                        <span class="small-note">(最多10个)</span>
+                    </div>
+                </div>
+                
+                ${debug ? `
+                <div class="debug-section">
+                    <div class="btn-group">
+                        <button id="analyzeSeatBtn" class="btn">
+                            <span class="btn-icon">🔍</span>分析座位
+                        </button>
+                        <button id="highlightSeats" class="btn">
+                            <span class="btn-icon">🔆</span>高亮座位
+                        </button>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        `;
         
         panel.innerHTML = panelHtml;
         targetDocument.body.appendChild(panel);
         console.log("控制面板已添加到DOM");
 
+        // 添加拖动功能
+        makePanelDraggable(panel, targetDocument);
+
         // 添加事件监听
         targetDocument.getElementById('pauseAssistant').addEventListener('click', toggleAssistant);
         targetDocument.getElementById('refreshPage').addEventListener('click', refreshSeatArea);
         targetDocument.getElementById('resetSelection').addEventListener('click', resetSeatSelection);
+        targetDocument.getElementById('panelPin').addEventListener('click', function() {
+            this.classList.toggle('pinned');
+            const isPinned = this.classList.contains('pinned');
+            if (isPinned) {
+                // 保存面板当前位置
+                saveCurrentPanelPosition(panel);
+                showMessage("面板位置已固定", "info", targetDocument);
+            } else {
+                // 清除保存的位置
+                try {
+                    GM_setValue('panelPosition', null);
+                    showMessage("面板位置已取消固定", "info", targetDocument);
+                } catch (e) {
+                    console.log("无法清除面板位置:", e);
+                }
+            }
+        });
+
+        // 其他事件监听...
         targetDocument.getElementById('autoSelectSeat').addEventListener('change', function() {
             config.autoSelectSeat = this.checked;
             console.log("自动选择座位状态已更改为:", config.autoSelectSeat);
@@ -392,6 +691,101 @@
         console.log("助手已标记为激活状态");
         
         showMessage("yes24座位分析助手已激活", "info", targetDocument);
+
+        // 检查是否有保存的位置，如果有则标记为已固定
+        try {
+            const savedPosition = GM_getValue('panelPosition');
+            if (savedPosition) {
+                const pinBtn = targetDocument.getElementById('panelPin');
+                if (pinBtn) pinBtn.classList.add('pinned');
+            }
+        } catch (e) {
+            console.log("无法检查面板固定状态:", e);
+        }
+    }
+
+    // 使面板可拖动
+    function makePanelDraggable(panel, doc) {
+        const handle = doc.getElementById('panelDragHandle');
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        handle.addEventListener('mousedown', function(e) {
+            // 如果点击了pin按钮，则不触发拖动
+            if (e.target.id === 'panelPin') return;
+            
+            isDragging = true;
+            offsetX = e.clientX - panel.getBoundingClientRect().left;
+            offsetY = e.clientY - panel.getBoundingClientRect().top;
+            
+            // 添加临时样式提示正在拖动
+            panel.style.opacity = '0.8';
+            panel.style.transition = 'none';
+            
+            // 阻止默认行为和冒泡
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        doc.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            let newX = e.clientX - offsetX;
+            let newY = e.clientY - offsetY;
+            
+            // 确保面板不会完全移出视窗
+            const panelWidth = panel.offsetWidth;
+            const panelHeight = panel.offsetHeight;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // 至少保留80px在视窗内
+            newX = Math.min(Math.max(newX, -panelWidth + 80), windowWidth - 80);
+            newY = Math.min(Math.max(newY, 0), windowHeight - 40);
+            
+            panel.style.left = newX + 'px';
+            panel.style.top = newY + 'px';
+            panel.style.right = 'auto'; // 清除可能的right值
+            
+            e.preventDefault();
+        });
+
+        doc.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                panel.style.opacity = '1';
+                panel.style.transition = 'opacity 0.3s ease';
+                
+                // 如果面板是固定状态，则保存当前位置
+                const pinBtn = doc.getElementById('panelPin');
+                if (pinBtn && pinBtn.classList.contains('pinned')) {
+                    saveCurrentPanelPosition(panel);
+                }
+            }
+        });
+        
+        // 确保在鼠标离开文档时也能结束拖动
+        doc.addEventListener('mouseleave', function() {
+            if (isDragging) {
+                isDragging = false;
+                panel.style.opacity = '1';
+                panel.style.transition = 'opacity 0.3s ease';
+            }
+        });
+    }
+    
+    // 保存面板当前位置
+    function saveCurrentPanelPosition(panel) {
+        try {
+            const position = {
+                top: panel.style.top,
+                left: panel.style.left
+            };
+            GM_setValue('panelPosition', position);
+            console.log("面板位置已保存:", position);
+        } catch (e) {
+            console.error("保存面板位置失败:", e);
+        }
     }
 
     // 重置座位选择
@@ -427,15 +821,17 @@
         const status = activeDoc.getElementById('seatStatus');
         
         if (isPaused) {
-            btn.textContent = "继续";
+            btn.innerHTML = '<span class="btn-icon">▶️</span>继续';
             status.textContent = "已暂停";
-            status.style.color = "yellow";
+            status.style.color = "#ffc107"; // 黄色
+            status.classList.remove('analyzing');
             
             if (seatAreaObserver) seatAreaObserver.disconnect();
         } else {
-            btn.textContent = "暂停";
+            btn.innerHTML = '<span class="btn-icon">⏯️</span>暂停';
             status.textContent = "分析中...";
-            status.style.color = "white";
+            status.style.color = "#20c997"; // 绿色
+            status.classList.add('analyzing');
             
             const seatArea = activeDoc.querySelector(config.seatSelectors.container);
             if (seatArea) startSeatMonitoring(activeDoc, seatArea);
@@ -547,7 +943,8 @@
             
             if (availableSeats.length > 0) {
                 statusEl.textContent = "发现可选座位!";
-                statusEl.style.color = "lime";
+                statusEl.style.color = "#20c997"; // 绿色
+                statusEl.classList.remove('analyzing');
                 
                 if (config.enableNotification && (!window._lastNotifiedSeatCount || window._lastNotifiedSeatCount !== availableSeats.length)) {
                     GM_notification({
@@ -560,7 +957,8 @@
                 }
             } else {
                 statusEl.textContent = "暂无可选座位";
-                statusEl.style.color = "orange";
+                statusEl.style.color = "#ffc107"; // 黄色
+                statusEl.classList.add('analyzing');
                 window._lastNotifiedSeatCount = 0;
             }
             
@@ -569,7 +967,8 @@
             console.error("分析座位状态出错:", e);
             if (statusEl) {
                 statusEl.textContent = "分析出错";
-                statusEl.style.color = "red";
+                statusEl.style.color = "#fa5252"; // 红色
+                statusEl.classList.remove('analyzing');
             }
             return null;
         }
@@ -865,20 +1264,30 @@
         const msgEl = targetDoc.createElement('div');
         msgEl.style.cssText = `
             margin-top: 10px;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px 15px;
+            border-radius: 8px;
             color: white;
-            background-color: ${type === 'error' ? 'rgba(220, 53, 69, 0.9)' : 'rgba(23, 162, 184, 0.9)'};
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: opacity 0.5s;
+            background-color: ${type === 'error' ? 'rgba(250, 82, 82, 0.95)' : 'rgba(32, 201, 151, 0.9)'};
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            border-left: 4px solid ${type === 'error' ? '#e03131' : '#12b886'};
         `;
-        msgEl.textContent = message;
+        
+        const icon = type === 'error' ? '❌' : '✅';
+        msgEl.innerHTML = `<span style="margin-right: 8px; font-size: 16px;">${icon}</span>${message}`;
         
         container.appendChild(msgEl);
         
+        // 使用动画效果
         setTimeout(() => {
             msgEl.style.opacity = '0';
-            setTimeout(() => msgEl.remove(), 500);
+            msgEl.style.transform = 'translateX(30px)';
+            setTimeout(() => msgEl.remove(), 300);
         }, 3000);
     }
 })();
