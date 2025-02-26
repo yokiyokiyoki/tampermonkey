@@ -103,11 +103,177 @@
         }
     }
     
+    // 刷新页面或iframe
+    function refreshSeatArea() {
+        resetSeatSelection();
+        
+        // 备份配置，便于刷新后恢复
+        const savedConfig = {
+            autoSelectSeat: config.autoSelectSeat,
+            preferredGrade: config.preferredGrade,
+            seatCount: config.seatCount
+        };
+        
+        // 重置全局标识
+        window.yes24SeatAssistantActive = false;
+        
+        if (activeIframe) {
+            try {
+                // 先保留当前iframe引用
+                const iframe = activeIframe;
+                
+                // 显示刷新消息
+                showMessage("正在刷新座位区域...", "info", document);
+                console.log("开始刷新iframe内容");
+                
+                // 确保清除观察器
+                if (seatAreaObserver) {
+                    seatAreaObserver.disconnect();
+                    seatAreaObserver = null;
+                }
+                
+                // 重置状态
+                activeSeatDocument = null;
+                activeIframe = null;
+                isPaused = false;
+                selectedSeatCount = 0;
+                seatSelectionState.inProgress = false;
+                seatSelectionState.selectedSeatIds.clear();
+                
+                // 添加一个一次性加载事件处理器
+                const loadHandler = function onLoad() {
+                    // 移除这个监听器，避免重复执行
+                    iframe.removeEventListener('load', loadHandler);
+                    console.log("iframe加载完成，准备重新初始化助手");
+                    
+                    // 恢复配置
+                    Object.assign(config, savedConfig);
+                    
+                    // 使用多个检测点确保控制面板会出现
+                    checkAndInitializePanel(iframe, 5);
+                };
+                
+                iframe.addEventListener('load', loadHandler);
+                
+                // 刷新iframe
+                const currentSrc = iframe.src || iframe.getAttribute('src');
+                console.log("当前iframe源: ", currentSrc);
+                
+                if (!currentSrc) {
+                    console.error("无法获取iframe的原始URL，刷新整个页面");
+                    location.reload();
+                    return;
+                }
+                
+                // 先清空，确保触发load事件
+                iframe.src = "about:blank"; 
+                
+                // 延迟恢复原始URL
+                setTimeout(() => {
+                    console.log("恢复iframe原始地址: ", currentSrc);
+                    iframe.src = currentSrc;
+                    
+                    // 添加安全网 - 如果15秒后面板仍未出现，尝试强制初始化
+                    setTimeout(() => {
+                        if (!window.yes24SeatAssistantActive) {
+                            console.log("安全检查: 面板未出现，尝试强制初始化");
+                            try {
+                                const doc = iframe.contentDocument;
+                                if (doc) {
+                                    // 恢复配置
+                                    Object.assign(config, savedConfig);
+                                    
+                                    const seatArea = doc.querySelector(config.seatSelectors.container);
+                                    if (seatArea) {
+                                        console.log("找到座位区域，强制初始化面板");
+                                        activeSeatDocument = doc;
+                                        activeIframe = iframe;
+                                        addControlPanel(doc);
+                                        startSeatMonitoring(doc, seatArea);
+                                    } else {
+                                        console.log("无法找到座位区域，可能需要手动刷新页面");
+                                        showMessage("无法找到座位区域，请手动刷新页面", "error", document);
+                                    }
+                                }
+                            } catch(e) {
+                                console.error("强制初始化失败:", e);
+                            }
+                        }
+                    }, 15000);
+                }, 200);
+                
+                return;
+            } catch (e) {
+                console.error("刷新iframe失败:", e);
+            }
+        }
+        
+        // 如果上面的方法失败，就刷新整个页面
+        console.log("无法刷新iframe，刷新整个页面");
+        location.reload();
+    }
+    
+    // 分阶段检测和初始化面板
+    function checkAndInitializePanel(iframe, remainingAttempts) {
+        if (remainingAttempts <= 0) {
+            console.log("达到最大尝试次数，无法初始化面板");
+            showMessage("无法初始化面板，请手动刷新页面", "error", document);
+            return;
+        }
+        
+        if (window.yes24SeatAssistantActive) {
+            console.log("检测到面板已经初始化，跳过");
+            return;
+        }
+        
+        console.log(`尝试初始化面板 (剩余尝试: ${remainingAttempts})`);
+        
+        try {
+            const doc = iframe.contentDocument;
+            if (!doc) {
+                console.log("无法访问iframe文档，可能是跨域限制");
+                setTimeout(() => checkAndInitializePanel(iframe, remainingAttempts - 1), 1000);
+                return;
+            }
+            
+            const seatArea = doc.querySelector(config.seatSelectors.container);
+            if (!seatArea) {
+                console.log("未找到座位区域，稍后重试...");
+                setTimeout(() => checkAndInitializePanel(iframe, remainingAttempts - 1), 1000);
+                return;
+            }
+            
+            console.log("找到座位区域，初始化面板");
+            activeSeatDocument = doc;
+            activeIframe = iframe;
+            addControlPanel(doc);
+            startSeatMonitoring(doc, seatArea);
+            
+            // 检查面板是否真的创建了
+            setTimeout(() => {
+                if (!doc.getElementById('ticketAssistantPanel')) {
+                    console.log("面板未能成功创建，再次尝试");
+                    window.yes24SeatAssistantActive = false; // 重置状态
+                    addControlPanel(doc);
+                }
+            }, 500);
+            
+        } catch (e) {
+            console.error("初始化面板时出错:", e);
+            setTimeout(() => checkAndInitializePanel(iframe, remainingAttempts - 1), 1000);
+        }
+    }
+
     // 添加控制面板
     function addControlPanel(targetDocument) {
         // 确保面板唯一性
-        if (targetDocument.getElementById('ticketAssistantPanel')) return;
+        const existingPanel = targetDocument.getElementById('ticketAssistantPanel');
+        if (existingPanel) {
+            console.log("已存在控制面板，无需重复添加");
+            return;
+        }
         
+        console.log("开始创建控制面板...");
         const panel = targetDocument.createElement('div');
         panel.id = 'ticketAssistantPanel';
         panel.style.cssText = `
@@ -143,10 +309,6 @@
                 <label for="autoSelectSeat">自动选择座位</label>
             </div>
             <div style="margin-top: 5px;">
-                <label for="preferredArea" style="display: block; margin-bottom: 3px;">优先区域:</label>
-                <input type="text" id="preferredArea" value="${config.preferredArea}" style="width: 90%;" placeholder="例如: Floor, Area, Row">
-            </div>
-            <div style="margin-top: 5px;">
                 <label for="preferredGrade">优先等级:</label>
                 <select id="preferredGrade" style="margin-left: 5px;">
                     <option value="">不限</option>
@@ -179,6 +341,7 @@
         
         panel.innerHTML = panelHtml;
         targetDocument.body.appendChild(panel);
+        console.log("控制面板已添加到DOM");
 
         // 添加事件监听
         targetDocument.getElementById('pauseAssistant').addEventListener('click', toggleAssistant);
@@ -201,11 +364,18 @@
                 }
             }
         });
-        targetDocument.getElementById('preferredArea').addEventListener('change', function() {
-            config.preferredArea = this.value.trim();
-        });
         targetDocument.getElementById('preferredGrade').addEventListener('change', function() {
             config.preferredGrade = this.value;
+            console.log("已设置优先座位等级:", config.preferredGrade);
+            
+            // 如果已开启自动选择，则重新触发座位选择
+            if (config.autoSelectSeat) {
+                setTimeout(() => {
+                    console.log("检测到优先级变化，重新选择座位...");
+                    const seatAnalysis = analyzeSeatStatus();
+                    trySelectSeats(seatAnalysis);
+                }, 100);
+            }
         });
         targetDocument.getElementById('seatCount').addEventListener('change', function() {
             config.seatCount = parseInt(this.value);
@@ -217,62 +387,11 @@
             targetDocument.getElementById('highlightSeats').addEventListener('click', highlightAllSeats);
         }
         
+        // 标记为已激活
+        window.yes24SeatAssistantActive = true;
+        console.log("助手已标记为激活状态");
+        
         showMessage("yes24座位分析助手已激活", "info", targetDocument);
-    }
-
-    // 刷新页面或iframe
-    function refreshSeatArea() {
-        resetSeatSelection();
-        
-        if (activeIframe) {
-            try {
-                // 先保留当前iframe引用
-                const iframe = activeIframe;
-                
-                // 显示刷新消息
-                showMessage("正在刷新座位区域...", "info", document);
-                
-                // 添加一个一次性加载事件处理器
-                iframe.addEventListener('load', function onLoad() {
-                    // 移除这个监听器，避免重复执行
-                    iframe.removeEventListener('load', onLoad);
-                    
-                    // 延迟一点时间确保DOM加载完毕
-                    setTimeout(() => {
-                        try {
-                            // 重新初始化面板
-                            window.yes24SeatAssistantActive = false;
-                            const doc = iframe.contentDocument;
-                            if (doc) {
-                                const seatArea = doc.querySelector(config.seatSelectors.container);
-                                if (seatArea) {
-                                    console.log("iframe刷新完成，重新初始化助手");
-                                    activeSeatDocument = doc;
-                                    addControlPanel(doc);
-                                    startSeatMonitoring(doc, seatArea);
-                                }
-                            }
-                        } catch (e) {
-                            console.error("iframe刷新后重新初始化出错:", e);
-                        }
-                    }, 500);
-                });
-                
-                // 刷新iframe
-                const currentSrc = iframe.src;
-                iframe.src = "about:blank"; // 先清空，确保触发load事件
-                setTimeout(() => {
-                    iframe.src = currentSrc;
-                }, 100);
-                
-                return;
-            } catch (e) {
-                console.error("刷新iframe失败:", e);
-            }
-        }
-        
-        // 如果上面的方法失败，就刷新整个页面
-        location.reload();
     }
 
     // 重置座位选择
@@ -433,7 +552,7 @@
                 if (config.enableNotification && (!window._lastNotifiedSeatCount || window._lastNotifiedSeatCount !== availableSeats.length)) {
                     GM_notification({
                         title: 'yes24座位分析助手',
-                        text: `发现${availableSeats.length}个可选座位! VIP:${vipSeats.length}, R:${rSeats.length}, S:${sSeats.length}`,
+                        text: `发现${availableSeats.length}个可用座位! VIP:${vipSeats.length}, R:${rSeats.length}, S:${sSeats.length}`,
                         timeout: 3000,
                         onclick: () => window.focus()
                     });
@@ -489,8 +608,44 @@
             return;
         }
         
+        // 根据优先等级筛选座位
+        let seatsToSelect = [];
+        
+        if (config.preferredGrade) {
+            console.log(`应用座位等级筛选: ${config.preferredGrade}`);
+            
+            // 根据选择的等级获取对应的座位
+            switch (config.preferredGrade) {
+                case 'VIP':
+                    seatsToSelect = analysis.vip.slice();
+                    console.log(`找到VIP座位: ${analysis.vip.length}个`);
+                    break;
+                case 'R':
+                    seatsToSelect = analysis.r.slice();
+                    console.log(`找到R座位: ${analysis.r.length}个`);
+                    break;
+                case 'S':
+                    seatsToSelect = analysis.s.slice();
+                    console.log(`找到S座位: ${analysis.s.length}个`);
+                    break;
+                default:
+                    seatsToSelect = analysis.available.slice();
+                    console.log(`使用所有可用座位: ${analysis.available.length}个`);
+            }
+            
+            // 如果选择的等级没有座位，则提示用户
+            if (seatsToSelect.length === 0) {
+                console.log(`没有找到${config.preferredGrade}等级的座位，使用所有可用座位`);
+                showMessage(`没有找到${config.preferredGrade}等级的座位`, "info");
+                seatsToSelect = analysis.available.slice();
+            }
+        } else {
+            seatsToSelect = analysis.available.slice();
+            console.log(`没有指定优先等级，使用所有可用座位: ${seatsToSelect.length}个`);
+        }
+        
         // 过滤掉已选座位
-        const seatsToSelect = analysis.available.filter(seat => {
+        seatsToSelect = seatsToSelect.filter(seat => {
             if (!seat.id || seatSelectionState.selectedSeatIds.has(seat.id)) {
                 return false;
             }
@@ -523,7 +678,7 @@
         }
         
         seatSelectionState.inProgress = true;
-        showMessage(`正在自动选择${numToSelect}个座位...`, "info");
+        showMessage(`正在自动选择${numToSelect}个${config.preferredGrade || ""}座位...`, "info");
         
         for (let i = 0; i < numToSelect; i++) {
             setTimeout(() => {
@@ -633,34 +788,49 @@
     
     // 高亮单个座位
     function highlightSeat(seat, color, label) {
-        const origBorder = seat.style.border;
-        const origBg = seat.style.backgroundColor;
+        // 保存原始样式参考，但不修改
+        const seatRect = seat.getBoundingClientRect();
+        const doc = seat.ownerDocument;
         
-        seat.style.border = `2px solid ${color}`;
-        seat.style.backgroundColor = `rgba(${colorToRgb(color)}, 0.3)`;
-        seat.style.position = 'relative';
-        seat.style.zIndex = '100';
+        // 创建叠加高亮层
+        const overlay = doc.createElement('div');
+        overlay.className = 'seat-highlight-overlay';
+        overlay.style.cssText = `
+            position: absolute;
+            left: ${seatRect.left}px;
+            top: ${seatRect.top}px;
+            width: ${seatRect.width}px;
+            height: ${seatRect.height}px;
+            border: 2px solid ${color};
+            background-color: rgba(${colorToRgb(color)}, 0.3);
+            pointer-events: none;
+            z-index: 999;
+        `;
+        doc.body.appendChild(overlay);
         
-        const labelEl = document.createElement('span');
+        // 创建标签
+        const labelEl = doc.createElement('span');
         labelEl.style.cssText = `
             position: absolute;
-            top: -15px;
-            left: 0;
+            left: ${seatRect.left}px;
+            top: ${seatRect.top - 18}px;
             background-color: ${color};
             color: black;
             font-size: 10px;
             padding: 1px 3px;
             border-radius: 2px;
             white-space: nowrap;
+            pointer-events: none;
+            z-index: 1000;
         `;
         labelEl.textContent = label;
         labelEl.className = 'seat-highlight-label';
-        seat.appendChild(labelEl);
+        doc.body.appendChild(labelEl);
         
+        // 定时清除高亮效果
         setTimeout(() => {
-            seat.style.border = origBorder;
-            seat.style.backgroundColor = origBg;
-            seat.querySelectorAll('.seat-highlight-label').forEach(el => el.remove());
+            overlay.remove();
+            labelEl.remove();
         }, 5000);
     }
     
