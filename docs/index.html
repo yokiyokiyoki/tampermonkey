@@ -1,11 +1,232 @@
 <!DOCTYPE html>
-<html>
-<body>
-  <h1>脚本安装</h1>
-  装了油猴脚本之后在新页面打开以下链接，然后点击安装即可
-  <div>
-    <a href="https://raw.githubusercontent.com/yokiyokiyoki/tampermonkey/main/yes24_ticket_autoclick.user.js" target="_blank">安装yes24座位助手最新版</a>
-  </div>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>油猴脚本集合安装指南</title>
+  <style>
+    body {
+      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      color: #333;
+    }
     
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      margin-top: 40px;
+      margin-bottom: 40px;
+    }
+    
+    header {
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 30px;
+    }
+    
+    h1 {
+      color: #2c3e50;
+      margin: 0;
+      font-size: 2.5em;
+    }
+    
+    .subtitle {
+      color: #7f8c8d;
+      margin-top: 10px;
+      font-size: 1.2em;
+    }
+    
+    .install-section {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+    
+    .script-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background-color: #fff;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .script-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .script-card h3 {
+      margin-top: 0;
+      color: #2c3e50;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    
+    .script-tags {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    
+    .tag {
+      background-color: #e1f5fe;
+      color: #0288d1;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+    
+    .install-button {
+      display: inline-block;
+      background-color: #3498db;
+      color: white;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+      margin-top: 15px;
+      transition: all 0.3s ease;
+    }
+    
+    .install-button:hover {
+      background-color: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .icon {
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      color: #7f8c8d;
+      font-size: 0.9em;
+    }
+    
+    .intro-section {
+      margin-bottom: 30px;
+    }
+    
+    .script-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    
+    .script-description {
+      flex: 1;
+    }
+    
+    .script-actions {
+      margin-left: 20px;
+      text-align: center;
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 20px;
+    }
+    
+    .tab {
+      padding: 10px 15px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-right: 5px;
+    }
+    
+    .tab.active {
+      border-bottom-color: #3498db;
+      color: #3498db;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>油猴脚本集合</h1>
+      <p class="subtitle">实用工具脚本，提升网页体验</p>
+    </header>
+    
+    <div class="intro-section">
+      <h2>🔧 脚本安装指南</h2>
+      <p>请按照以下步骤安装所需脚本：</p>
+      <ol>
+        <li>首先确保您已安装 <a href="https://www.tampermonkey.net/" target="_blank">Tampermonkey</a> 浏览器扩展</li>
+        <li>点击您需要的脚本下方的安装按钮，将自动打开Tampermonkey安装页面</li>
+        <li>在打开的页面中点击"安装"按钮完成安装</li>
+      </ol>
+    </div>
+    
+    <div class="tabs">
+      <div class="tab active">所有脚本</div>
+      <div class="tab">购票类</div>
+      <div class="tab">工具类</div>
+      <div class="tab">视频类</div>
+    </div>
+    
+    <div class="scripts-container">
+      <!-- Yes24座位助手 -->
+      <div class="script-card">
+        <h3>Yes24座位助手</h3>
+        <div class="script-tags">
+          <span class="tag">购票</span>
+          <span class="tag">Yes24</span>
+          <span class="tag">抢票</span>
+        </div>
+        <div class="script-info">
+          <div class="script-description">
+            <p>自动监测和选择Yes24网站上的可用座位，按等级筛选。</p>
+            <ul>
+              <li>自动监测可选座位</li>
+              <li>按座位等级筛选（VIP、R、S）</li>
+              <li>设置自动选座数量</li>
+            </ul>
+          </div>
+          <div class="script-actions">
+            <a href="https://raw.githubusercontent.com/yokiyokiyoki/tampermonkey/main/yes24_ticket_autoclick.user.js" class="install-button" target="_blank">
+              <span class="icon">⚡</span>安装脚本
+            </a>
+          </div>
+        </div>
+      </div>
+      
+
+    </div>
+    
+    <footer>
+      <p>© 油猴脚本集合 | <a href="https://github.com/yokiyokiyoki/tampermonkey" target="_blank">GitHub</a></p>
+    </footer>
+  </div>
+  
+  <script>
+    // 简单的标签切换功能
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        // 实际项目中可添加筛选功能
+        const category = this.textContent;
+        // 这里添加脚本卡片筛选逻辑
+      });
+    });
+  </script>
 </body>
 </html>
