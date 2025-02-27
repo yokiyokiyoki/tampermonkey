@@ -1121,54 +1121,23 @@
         }
     }
 
-    // 更新已选座位数量 - 完善检测逻辑
+    // 更新已选座位数量 - 使用#liSelSeat中的p元素计数
     function updateActualSelectedSeats() {
         if (!activeSeatDocument) return 0;
         
         const doc = activeSeatDocument;
         
-        // 多种方式检测已选座位
-        const selectedElements = doc.querySelectorAll('.selected, [aria-selected="true"], .s13[style*="background"], .s13[style*="border"], div[class^="s"][style*="rgb(255"], div.on');
+        // 直接从#liSelSeat中计算p元素数量
+        const liSelSeat = doc.querySelector('#liSelSeat');
+        let count = 0;
         
-        // 检查网站上显示的座位数量文本
-        const countTextElements = doc.querySelectorAll('#selectedSeatInfo, .seat-counter, .seat-count, .selectSeatInfo, .selSeat');
-        let textCount = 0;
-        
-        countTextElements.forEach(element => {
-            if (element && element.textContent) {
-                const matches = element.textContent.match(/\d+/g);
-                if (matches && matches.length > 0) {
-                    const possibleCount = parseInt(matches[0]);
-                    if (!isNaN(possibleCount) && possibleCount > textCount) {
-                        textCount = possibleCount;
-                    }
-                }
-            }
-        });
-        
-        // 通过已选座位列表检测
-        const selectedSeatsInList = doc.querySelectorAll('.liSelSeat li, .seatList li');
-        const listCount = selectedSeatsInList.length;
-        
-        // 查找座位图上带有选中样式的元素
-        const styledSeats = doc.querySelectorAll('div[style*="background-color"]');
-        let styledSeatsCount = 0;
-        
-        styledSeats.forEach(seat => {
-            const style = window.getComputedStyle(seat);
-            if (style.backgroundColor.includes('255') || // 红色分量检测
-                style.border.includes('255') || 
-                seat.getAttribute('aria-selected') === 'true' ||
-                seat.classList.contains('selected') ||
-                seat.classList.contains('on')) {
-                styledSeatsCount++;
-            }
-        });
-        
-        console.log(`座位检测 - 元素选择器: ${selectedElements.length}, 文本计数: ${textCount}, 列表计数: ${listCount}, 样式计数: ${styledSeatsCount}, 当前计数: ${selectedSeatCount}`);
-        
-        // 取所有检测方法中的最大值
-        const count = Math.max(selectedElements.length, textCount, listCount, styledSeatsCount, selectedSeatCount);
+        if (liSelSeat) {
+            const pElements = liSelSeat.querySelectorAll('p');
+            count = pElements.length;
+            console.log(`从#liSelSeat中找到${count}个p元素，表示已选座位`);
+        } else {
+            console.log("未找到#liSelSeat元素，无法计算已选座位");
+        }
         
         // 只在计数变化时更新UI
         if (count !== selectedSeatCount) {
