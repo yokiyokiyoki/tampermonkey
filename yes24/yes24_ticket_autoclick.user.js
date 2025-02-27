@@ -92,6 +92,15 @@
                     
                     // 初始化助手 - 将面板添加到主文档而不是iframe内
                     addControlPanel(document);
+                    
+                    // 确保函数已定义 - 先定义analyzeSeatStatus函数
+                    if (typeof analyzeSeatStatus !== 'function') {
+                        console.log("定义analyzeSeatStatus函数");
+                        // 将analyzeSeatStatus定义移到这里，确保它在被调用之前已经定义
+                        window.analyzeSeatStatus = analyzeSeatStatus;
+                    }
+                    
+                    // 然后再启动监控
                     startSeatMonitoring(doc, seatArea);
                     
                     // 清除定时器
@@ -99,6 +108,10 @@
                 }
             } catch (e) {
                 console.error("访问ifrmSeatFrame内容时出错:", e);
+                // 添加更多错误信息帮助调试
+                console.error("错误详情:", e.message);
+                console.error("错误堆栈:", e.stack);
+                showMessage(`访问座位区域出错: ${e.message}`, "error", document);
             }
         }
     }
@@ -845,136 +858,136 @@
         
         if (seatAreaObserver) seatAreaObserver.disconnect();
         
-        seatAreaObserver = new MutationObserver(() => {
+        // 检测座位变化
+        seatAreaObserver = new MutationObserver((mutations) => {
             if (isPaused) return;
             
-            updateActualSelectedSeats();
-            const seatAnalysis = analyzeSeatStatus();
+            // 判断是否有重要变化需要更新
+            const needsUpdate = mutations.some(mutation => {
+                // 如果是属性变化，可能是座位状态变化
+                if (mutation.type === 'attributes') {
+                    return ['class', 'style', 'selected', 'aria-selected'].includes(mutation.attributeName);
+                }
+                // 如果是子节点变化，可能是座位添加/移除
+                return mutation.type === 'childList';
+            });
             
-            if (selectedSeatCount >= 10 && config.autoSelectSeat) {
-                disableAutoSelect();
-            } else if (config.autoSelectSeat && seatAnalysis && seatAnalysis.available.length > 0) {
-                trySelectSeats(seatAnalysis);
+            if (needsUpdate) {
+                console.log("检测到DOM变化，更新座位状态");
+                updateActualSelectedSeats();
+                const seatAnalysis = analyzeSeatStatus();
+                
+                if (selectedSeatCount >= 10 && config.autoSelectSeat) {
+                    disableAutoSelect();
+                } else if (config.autoSelectSeat && seatAnalysis && seatAnalysis.available.length > 0) {
+                    trySelectSeats(seatAnalysis);
+                }
             }
         });
         
-        // 观察选项
+        // 观察选项 - 增强属性监听
         seatAreaObserver.observe(seatArea, {
             childList: true,
             attributes: true,
             subtree: true,
-            attributeFilter: ['class', 'style', 'title']
+            characterData: true,
+            attributeFilter: ['class', 'style', 'title', 'selected', 'aria-selected', 'onclick']
         });
         
-        // 监听已选座位列表
-        const selectedListContainer = doc.querySelector('.liSelSeat');
-        if (selectedListContainer) {
-            new MutationObserver(() => {
-                if (!isPaused) updateActualSelectedSeats();
-            }).observe(selectedListContainer, {
-                childList: true,
-                subtree: true
+        // 增强监听已选座位列表
+        const selectedListContainers = doc.querySelectorAll('.liSelSeat, .seatList, .select-seat-area, .selectSeatInfo');
+        selectedListContainers.forEach(container => {
+            if (container) {
+                new MutationObserver((mutations) => {
+                    if (!isPaused) {
+                        console.log("检测到选座列表变化，更新已选座位计数");
+                        updateActualSelectedSeats();
+                    }
+                }).observe(container, {
+                    childList: true,
+                    subtree: true,
+                    characterData: true,
+                    attributes: true
+                });
+            }
+        });
+        
+        // 监听文档可视状态变化，在文档重新变为可见时进行更新
+        doc.addEventListener('visibilitychange', () => {
+            if (!isPaused && document.visibilityState === 'visible') {
+                console.log("页面重新可见，更新座位状态");
+                updateActualSelectedSeats();
+                analyzeSeatStatus();
+            }
+        });
+        
+        // 为文档添加交互事件监听
+        ['click', 'touchend'].forEach(eventType => {
+            doc.addEventListener(eventType, (e) => {
+                // 只有在事件源与座位相关才触发更新
+                const target = e.target;
+                if (target && (
+                    target.classList && target.classList.contains('s13') ||
+                    target.getAttribute && target.getAttribute('name') === 'tk' ||
+                    target.parentElement && target.parentElement.classList && 
+                    target.parentElement.classList.contains('seatarea')
+                )) {
+                    // 延迟检查，确保座位选择状态已更新
+                    setTimeout(() => {
+                        if (!isPaused) {
+                            console.log(`检测到${eventType}事件在座位元素，检查状态变化`);
+                            updateActualSelectedSeats();
+                        }
+                    }, 300);
+                }
+            }, { passive: true }); // 使用passive标记提高性能
+        });
+        
+        // 批量更新的指令队列，避免频繁更新
+        let updateQueue = [];
+        let updateScheduled = false;
+        
+        // 新增：批量处理更新的函数
+        function processUpdates() {
+            if (updateQueue.length > 0 && !isPaused) {
+                console.log(`执行批量更新，队列长度: ${updateQueue.length}`);
+                updateActualSelectedSeats();
+                analyzeSeatStatus();
+                updateQueue = [];
+            }
+            updateScheduled = false;
+        }
+        
+        // 新增：节流函数，使用requestAnimationFrame替代setInterval
+        function scheduleUpdate() {
+            updateQueue.push(Date.now());
+            
+            if (!updateScheduled && !isPaused) {
+                updateScheduled = true;
+                requestAnimationFrame(processUpdates);
+            }
+        }
+        
+        // 建立与iframe父窗口的通信，以便在iframe切换时重新检测
+        if (window.top !== window) {
+            window.top.addEventListener('message', (event) => {
+                if (event.data === 'checkSeatStatus' && !isPaused) {
+                    scheduleUpdate();
+                }
             });
         }
         
-        // 立即分析一次
-        analyzeSeatStatus();
-    }
-    
-    // 分析座位状态
-    function analyzeSeatStatus() {
-        if (!activeSeatDocument) {
-            console.log("没有活动座位文档，无法分析座位状态");
-            return null;
-        }
-        
-        const doc = activeSeatDocument;
-        const statusEl = document.getElementById('seatStatus');
-        const availableCountEl = document.getElementById('availableSeatCount');
-        const selectedCountEl = document.getElementById('selectedSeatCount');
-        const vipCountEl = document.getElementById('vipCount');
-        const rCountEl = document.getElementById('rCount');
-        const sCountEl = document.getElementById('sCount');
-        
-        if (!statusEl) {
-            console.log("未找到状态元素，可能面板未正确加载");
-            return null;
-        }
-        
-        if (selectedCountEl) selectedCountEl.textContent = selectedSeatCount;
-        
+        // 初次分析 - 添加错误处理
+        console.log("初始化座位监控，执行初次分析");
         try {
-            console.log("开始分析座位状态...");
-            const allSeats = doc.querySelectorAll(config.seatSelectors.seats.all);
-            console.log(`找到${allSeats.length}个座位元素`);
-            
-            const availableSeats = [];
-            const vipSeats = [];
-            const rSeats = [];
-            const sSeats = [];
-            
-            allSeats.forEach(seat => {
-                const title = seat.getAttribute('title');
-                const className = seat.className;
-                
-                if (className.includes('s9')) {
-                    vipSeats.push(seat);
-                    availableSeats.push(seat);
-                } 
-                else if (className.includes('s6')) {
-                    rSeats.push(seat);
-                    availableSeats.push(seat);
-                }
-                else if (className.includes('s8')) {
-                    sSeats.push(seat);
-                    availableSeats.push(seat);
-                }
-                else if (className.includes('s13') && title) {
-                    availableSeats.push(seat);
-                }
-            });
-            
-            console.log(`分析结果: 可选座位${availableSeats.length}个, VIP席${vipSeats.length}个, R席${rSeats.length}个, S席${sSeats.length}个`);
-            
-            // 更新主文档中的面板显示
-            if (availableCountEl) availableCountEl.textContent = availableSeats.length;
-            if (vipCountEl) vipCountEl.textContent = vipSeats.length;
-            if (rCountEl) rCountEl.textContent = rSeats.length;
-            if (sCountEl) sCountEl.textContent = sSeats.length;
-            
-            if (availableSeats.length > 0) {
-                statusEl.textContent = "发现可选座位!";
-                statusEl.style.color = "#20c997"; // 绿色
-                statusEl.classList.remove('analyzing');
-                
-                if (config.enableNotification && (!window._lastNotifiedSeatCount || window._lastNotifiedSeatCount !== availableSeats.length)) {
-                    GM_notification({
-                        title: 'yes24座位分析助手',
-                        text: `发现${availableSeats.length}个可用座位! VIP:${vipSeats.length}, R:${rSeats.length}, S:${sSeats.length}`,
-                        timeout: 3000,
-                        onclick: () => window.focus()
-                    });
-                    window._lastNotifiedSeatCount = availableSeats.length;
-                }
-            } else {
-                statusEl.textContent = "暂无可选座位";
-                statusEl.style.color = "#ffc107"; // 黄色
-                statusEl.classList.add('analyzing');
-                window._lastNotifiedSeatCount = 0;
-            }
-            
-            return { all: allSeats, available: availableSeats, vip: vipSeats, r: rSeats, s: sSeats };
+            analyzeSeatStatus();
+            updateActualSelectedSeats();
         } catch (e) {
-            console.error("分析座位状态出错:", e);
-            if (statusEl) {
-                statusEl.textContent = "分析出错";
-                statusEl.style.color = "#fa5252"; // 红色
-                statusEl.classList.remove('analyzing');
-            }
-            return null;
+            console.error("初始化分析出错:", e);
+            showMessage(`初始化分析出错: ${e.message}`, "error", document);
         }
     }
-    
+
     // 尝试选择座位
     function trySelectSeats(analysis) {
         console.log("开始尝试选择座位...");
@@ -1108,28 +1121,66 @@
         }
     }
 
-    // 更新已选座位数量
+    // 更新已选座位数量 - 完善检测逻辑
     function updateActualSelectedSeats() {
         if (!activeSeatDocument) return 0;
         
         const doc = activeSeatDocument;
-        const selectedElements = doc.querySelectorAll('.selected, [aria-selected="true"], .s13[style*="background"], .s13[style*="border"]');
         
-        // 检查网站上显示的座位数量
-        const countText = doc.querySelector('#selectedSeatInfo, .seat-counter, .seat-count');
+        // 多种方式检测已选座位
+        const selectedElements = doc.querySelectorAll('.selected, [aria-selected="true"], .s13[style*="background"], .s13[style*="border"], div[class^="s"][style*="rgb(255"], div.on');
+        
+        // 检查网站上显示的座位数量文本
+        const countTextElements = doc.querySelectorAll('#selectedSeatInfo, .seat-counter, .seat-count, .selectSeatInfo, .selSeat');
         let textCount = 0;
         
-        if (countText) {
-            const match = countText.textContent.match(/\d+/);
-            if (match) textCount = parseInt(match[0]);
-        }
+        countTextElements.forEach(element => {
+            if (element && element.textContent) {
+                const matches = element.textContent.match(/\d+/g);
+                if (matches && matches.length > 0) {
+                    const possibleCount = parseInt(matches[0]);
+                    if (!isNaN(possibleCount) && possibleCount > textCount) {
+                        textCount = possibleCount;
+                    }
+                }
+            }
+        });
         
-        const count = Math.max(selectedElements.length, textCount, selectedSeatCount);
+        // 通过已选座位列表检测
+        const selectedSeatsInList = doc.querySelectorAll('.liSelSeat li, .seatList li');
+        const listCount = selectedSeatsInList.length;
         
+        // 查找座位图上带有选中样式的元素
+        const styledSeats = doc.querySelectorAll('div[style*="background-color"]');
+        let styledSeatsCount = 0;
+        
+        styledSeats.forEach(seat => {
+            const style = window.getComputedStyle(seat);
+            if (style.backgroundColor.includes('255') || // 红色分量检测
+                style.border.includes('255') || 
+                seat.getAttribute('aria-selected') === 'true' ||
+                seat.classList.contains('selected') ||
+                seat.classList.contains('on')) {
+                styledSeatsCount++;
+            }
+        });
+        
+        console.log(`座位检测 - 元素选择器: ${selectedElements.length}, 文本计数: ${textCount}, 列表计数: ${listCount}, 样式计数: ${styledSeatsCount}, 当前计数: ${selectedSeatCount}`);
+        
+        // 取所有检测方法中的最大值
+        const count = Math.max(selectedElements.length, textCount, listCount, styledSeatsCount, selectedSeatCount);
+        
+        // 只在计数变化时更新UI
         if (count !== selectedSeatCount) {
+            console.log(`更新已选座位计数: ${selectedSeatCount} -> ${count}`);
             selectedSeatCount = count;
             const countEl = document.getElementById('selectedSeatCount');
             if (countEl) countEl.textContent = count;
+            
+            // 如果手动选择座位达到最大值，禁用自动选择
+            if (count >= 10 && config.autoSelectSeat) {
+                disableAutoSelect();
+            }
         }
         
         return count;
@@ -1290,5 +1341,112 @@
             msgEl.style.transform = 'translateX(30px)';
             setTimeout(() => msgEl.remove(), 300);
         }, 3000);
+    }
+
+    // 先定义分析座位状态函数，确保它在被调用前已存在
+    // 分析座位状态
+    function analyzeSeatStatus() {
+        if (!activeSeatDocument) {
+            console.log("没有活动座位文档，无法分析座位状态");
+            return null;
+        }
+        
+        const doc = activeSeatDocument;
+        const statusEl = document.getElementById('seatStatus');
+        const availableCountEl = document.getElementById('availableSeatCount');
+        const selectedCountEl = document.getElementById('selectedSeatCount');
+        const vipCountEl = document.getElementById('vipCount');
+        const rCountEl = document.getElementById('rCount');
+        const sCountEl = document.getElementById('sCount');
+        
+        if (!statusEl) {
+            console.log("未找到状态元素，可能面板未正确加载");
+            return null;
+        }
+        
+        if (selectedCountEl) selectedCountEl.textContent = selectedSeatCount;
+        
+        try {
+            console.log("开始分析座位状态...");
+            // 检查文档和选择器是否有效
+            if (!doc.querySelector || typeof doc.querySelector !== 'function') {
+                console.error("无效的文档对象，querySelector不可用");
+                return null;
+            }
+            
+            const allSeats = doc.querySelectorAll(config.seatSelectors.seats.all);
+            console.log(`找到${allSeats.length}个座位元素`);
+            
+            const availableSeats = [];
+            const vipSeats = [];
+            const rSeats = [];
+            const sSeats = [];
+            
+            allSeats.forEach(seat => {
+                const title = seat.getAttribute('title');
+                const className = seat.className;
+                
+                if (className.includes('s9')) {
+                    vipSeats.push(seat);
+                    availableSeats.push(seat);
+                } 
+                else if (className.includes('s6')) {
+                    rSeats.push(seat);
+                    availableSeats.push(seat);
+                }
+                else if (className.includes('s8')) {
+                    sSeats.push(seat);
+                    availableSeats.push(seat);
+                }
+                else if (className.includes('s13') && title) {
+                    availableSeats.push(seat);
+                }
+            });
+            
+            console.log(`分析结果: 可选座位${availableSeats.length}个, VIP席${vipSeats.length}个, R席${rSeats.length}个, S席${sSeats.length}个`);
+            
+            // 更新主文档中的面板显示
+            if (availableCountEl) availableCountEl.textContent = availableSeats.length;
+            if (vipCountEl) vipCountEl.textContent = vipSeats.length;
+            if (rCountEl) rCountEl.textContent = rSeats.length;
+            if (sCountEl) sCountEl.textContent = sSeats.length;
+            
+            if (availableSeats.length > 0) {
+                statusEl.textContent = "发现可选座位!";
+                statusEl.style.color = "#20c997"; // 绿色
+                statusEl.classList.remove('analyzing');
+                
+                if (config.enableNotification && (!window._lastNotifiedSeatCount || window._lastNotifiedSeatCount !== availableSeats.length)) {
+                    try {
+                        GM_notification({
+                            title: 'yes24座位分析助手',
+                            text: `发现${availableSeats.length}个可用座位! VIP:${vipSeats.length}, R:${rSeats.length}, S:${sSeats.length}`,
+                            timeout: 3000,
+                            onclick: () => window.focus()
+                        });
+                        window._lastNotifiedSeatCount = availableSeats.length;
+                    } catch (notifyError) {
+                        console.error("显示通知失败:", notifyError);
+                    }
+                }
+            } else {
+                statusEl.textContent = "暂无可选座位";
+                statusEl.style.color = "#ffc107"; // 黄色
+                statusEl.classList.add('analyzing');
+                window._lastNotifiedSeatCount = 0;
+            }
+            
+            return { all: allSeats, available: availableSeats, vip: vipSeats, r: rSeats, s: sSeats };
+        } catch (e) {
+            console.error("分析座位状态出错:", e);
+            console.error("错误详情:", e.message);
+            console.error("错误堆栈:", e.stack);
+            if (statusEl) {
+                statusEl.textContent = "分析出错";
+                statusEl.style.color = "#fa5252"; // 红色
+                statusEl.classList.remove('analyzing');
+            }
+            return null;
+        }
     }
 })();
