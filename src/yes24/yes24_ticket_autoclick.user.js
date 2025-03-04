@@ -310,231 +310,7 @@
         
         // 添加自定义样式到主文档
         const styleElement = document.createElement('style');
-        styleElement.textContent = `
-            #ticketAssistantPanel {
-                position: fixed;
-                top: 10px;
-                right: 10px;
-                background-color: rgba(33, 37, 41, 0.95);
-                color: #e9ecef;
-                padding: 0;
-                border-radius: 8px;
-                z-index: 99999; /* 提高z-index确保显示在最上层 */
-                font-size: 14px;
-                width: 280px;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                backdrop-filter: blur(5px);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                overflow: hidden;
-                transition: all 0.3s ease;
-            }
-            
-            .panel-header {
-                background: linear-gradient(135deg, #4568dc, #3a6073);
-                padding: 12px 15px;
-                color: white;
-                font-weight: bold;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                cursor: move; /* 指示可拖动 */
-                user-select: none; /* 防止文本被选中 */
-            }
-            
-            .panel-title {
-                margin: 0;
-                font-size: 16px;
-                display: flex;
-                align-items: center;
-            }
-            
-            .panel-title-icon {
-                margin-right: 8px;
-                font-size: 18px;
-            }
-            
-            .panel-controls {
-                display: flex;
-                align-items: center;
-            }
-            
-            .panel-pin {
-                margin-left: 8px;
-                cursor: pointer;
-                font-size: 16px;
-                opacity: 0.7;
-                transition: opacity 0.2s;
-            }
-            
-            .panel-pin:hover {
-                opacity: 1;
-            }
-            
-            .panel-pin.pinned {
-                color: #fcc419;
-            }
-            
-            .panel-body {
-                padding: 15px;
-            }
-            
-            .status-group {
-                background: rgba(0, 0, 0, 0.2);
-                border-radius: 6px;
-                padding: 10px;
-                margin-bottom: 15px;
-            }
-            
-            .status-item {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 5px;
-            }
-            
-            .status-label {
-                color: #adb5bd;
-            }
-            
-            .status-value {
-                font-weight: bold;
-            }
-            
-            .status-value.highlight {
-                color: #20c997;
-            }
-            
-            .seat-types {
-                display: flex;
-                justify-content: space-between;
-                background: rgba(0, 0, 0, 0.15);
-                border-radius: 4px;
-                padding: 8px;
-                margin-bottom: 15px;
-            }
-            
-            .seat-type {
-                text-align: center;
-                flex: 1;
-            }
-            
-            .seat-type-label {
-                font-size: 12px;
-                color: #adb5bd;
-            }
-            
-            .seat-type-value {
-                font-weight: bold;
-                font-size: 16px;
-            }
-            
-            .vip-seat { color: #20c997; }
-            .r-seat { color: #339af0; }
-            .s-seat { color: #fcc419; }
-            
-            .control-group {
-                margin-bottom: 15px;
-            }
-            
-            .btn-group {
-                display: flex;
-                gap: 5px;
-                margin-bottom: 15px;
-            }
-            
-            .btn {
-                background-color: #495057;
-                color: white;
-                border: none;
-                padding: 8px 12px;
-                border-radius: 4px;
-                cursor: pointer;
-                flex: 1;
-                font-size: 13px;
-                transition: all 0.2s;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .btn:hover {
-                background-color: #6c757d;
-            }
-            
-            .btn-icon {
-                margin-right: 5px;
-            }
-            
-            .btn-primary {
-                background-color: #228be6;
-            }
-            
-            .btn-primary:hover {
-                background-color: #1c7ed6;
-            }
-            
-            .btn-danger {
-                background-color: #fa5252;
-            }
-            
-            .btn-danger:hover {
-                background-color: #e03131;
-            }
-            
-            .option-group {
-                margin-bottom: 10px;
-            }
-            
-            .option-row {
-                display: flex;
-                align-items: center;
-                margin-bottom: 8px;
-            }
-            
-            .option-label {
-                flex: 1;
-                font-size: 13px;
-            }
-            
-            .custom-checkbox {
-                width: 18px;
-                height: 18px;
-                margin-right: 8px;
-            }
-            
-            .custom-select {
-                background-color: #343a40;
-                color: white;
-                border: 1px solid #495057;
-                padding: 5px 8px;
-                border-radius: 4px;
-                font-size: 13px;
-                min-width: 100px;
-            }
-            
-            .debug-section {
-                margin-top: 15px;
-                padding-top: 10px;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            
-            .small-note {
-                color: #868e96;
-                font-size: 11px;
-                margin-left: 5px;
-            }
-            
-            @keyframes pulse {
-                0% { opacity: 0.6; }
-                50% { opacity: 1; }
-                100% { opacity: 0.6; }
-            }
-            
-            .analyzing {
-                animation: pulse 1.5s infinite;
-            }
-        `;
+        styleElement.textContent = `#ticketAssistantPanel{position:fixed;top:10px;right:10px;background-color:rgba(33,37,41,0.95);color:#e9ecef;padding:0;border-radius:8px;z-index:99999;font-size:14px;width:280px;box-shadow:0 5px 15px rgba(0,0,0,0.3);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;backdrop-filter:blur(5px);border:1px solid rgba(255,255,255,0.1);overflow:hidden;transition:all 0.3s ease}.panel-header{background:linear-gradient(135deg,#4568dc,#3a6073);padding:12px 15px;color:white;font-weight:bold;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center;cursor:move;user-select:none}.panel-title{margin:0;font-size:16px;display:flex;align-items:center}.panel-title-icon{margin-right:8px;font-size:18px}.panel-controls{display:flex;align-items:center}.panel-pin{margin-left:8px;cursor:pointer;font-size:16px;opacity:0.7;transition:opacity 0.2s}.panel-pin:hover{opacity:1}.panel-pin.pinned{color:#fcc419}.panel-body{padding:15px}.status-group{background:rgba(0,0,0,0.2);border-radius:6px;padding:10px;margin-bottom:15px}.status-item{display:flex;justify-content:space-between;margin-bottom:5px}.status-label{color:#adb5bd}.status-value{font-weight:bold}.status-value.highlight{color:#20c997}.seat-types{display:flex;justify-content:space-between;background:rgba(0,0,0,0.15);border-radius:4px;padding:8px;margin-bottom:15px}.seat-type{text-align:center;flex:1}.seat-type-label{font-size:12px;color:#adb5bd}.seat-type-value{font-weight:bold;font-size:16px}.vip-seat{color:#20c997}.r-seat{color:#339af0}.s-seat{color:#fcc419}.control-group{margin-bottom:15px}.btn-group{display:flex;gap:5px;margin-bottom:15px}.btn{background-color:#495057;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;flex:1;font-size:13px;transition:all 0.2s;display:inline-flex;align-items:center;justify-content:center}.btn:hover{background-color:#6c757d}.btn-icon{margin-right:5px}.btn-primary{background-color:#228be6}.btn-primary:hover{background-color:#1c7ed6}.btn-danger{background-color:#fa5252}.btn-danger:hover{background-color:#e03131}.option-group{margin-bottom:10px}.option-row{display:flex;align-items:center;margin-bottom:8px}.option-label{flex:1;font-size:13px}.custom-checkbox{width:18px;height:18px;margin-right:8px}.custom-select{background-color:#343a40;color:white;border:1px solid #495057;padding:5px 8px;border-radius:4px;font-size:13px;min-width:100px}.debug-section{margin-top:15px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1)}.small-note{color:#868e96;font-size:11px;margin-left:5px}@keyframes pulse{0%{opacity:0.6}50%{opacity:1}100%{opacity:0.6}}.analyzing{animation:pulse 1.5s infinite}`;
         document.head.appendChild(styleElement);
         
         // 创建面板 - 添加到主文档
@@ -1291,34 +1067,12 @@
         // 创建叠加高亮层
         const overlay = doc.createElement('div');
         overlay.className = 'seat-highlight-overlay';
-        overlay.style.cssText = `
-            position: absolute;
-            left: ${seatRect.left}px;
-            top: ${seatRect.top}px;
-            width: ${seatRect.width}px;
-            height: ${seatRect.height}px;
-            border: 2px solid ${color};
-            background-color: rgba(${colorToRgb(color)}, 0.3);
-            pointer-events: none;
-            z-index: 999;
-        `;
+        overlay.style.cssText = `position:absolute;left:${seatRect.left}px;top:${seatRect.top}px;width:${seatRect.width}px;height:${seatRect.height}px;border:2px solid ${color};background-color:rgba(${colorToRgb(color)},0.3);pointer-events:none;z-index:999;`;
         doc.body.appendChild(overlay);
         
         // 创建标签
         const labelEl = doc.createElement('span');
-        labelEl.style.cssText = `
-            position: absolute;
-            left: ${seatRect.left}px;
-            top: ${seatRect.top - 18}px;
-            background-color: ${color};
-            color: black;
-            font-size: 10px;
-            padding: 1px 3px;
-            border-radius: 2px;
-            white-space: nowrap;
-            pointer-events: none;
-            z-index: 1000;
-        `;
+        labelEl.style.cssText = `position:absolute;left:${seatRect.left}px;top:${seatRect.top-18}px;background-color:${color};color:black;font-size:10px;padding:1px 3px;border-radius:2px;white-space:nowrap;pointer-events:none;z-index:1000;`;
         labelEl.textContent = label;
         labelEl.className = 'seat-highlight-label';
         doc.body.appendChild(labelEl);
@@ -1348,35 +1102,15 @@
         if (!container) {
             container = targetDoc.createElement('div');
             container.id = 'seatAssistantMessages';
-            container.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                z-index: 10000;
-                max-width: 300px;
-            `;
+            container.style.cssText = `position:fixed;bottom:20px;right:20px;z-index:10000;max-width:300px;`;
             targetDoc.body.appendChild(container);
         }
         
         const msgEl = targetDoc.createElement('div');
-        msgEl.style.cssText = `
-            margin-top: 10px;
-            padding: 12px 15px;
-            border-radius: 8px;
-            color: white;
-            background-color: ${type === 'error' ? 'rgba(250, 82, 82, 0.95)' : 'rgba(32, 201, 151, 0.9)'};
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            backdrop-filter: blur(5px);
-            border-left: 4px solid ${type === 'error' ? '#e03131' : '#12b886'};
-        `;
+        msgEl.style.cssText = `margin-top:10px;padding:12px 15px;border-radius:8px;color:white;background-color:${type === 'error' ? 'rgba(250,82,82,0.95)' : 'rgba(32,201,151,0.9)'};box-shadow:0 4px 10px rgba(0,0,0,0.2);transition:all 0.3s ease;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:14px;display:flex;align-items:center;backdrop-filter:blur(5px);border-left:4px solid ${type === 'error' ? '#e03131' : '#12b886'};`;
         
         const icon = type === 'error' ? '❌' : '✅';
-        msgEl.innerHTML = `<span style="margin-right: 8px; font-size: 16px;">${icon}</span>${message}`;
+        msgEl.innerHTML = `<span style="margin-right:8px;font-size:16px;">${icon}</span>${message}`;
         
         container.appendChild(msgEl);
         
@@ -1513,7 +1247,7 @@
             console.log(`启动自动刷新，间隔: ${config.refreshInterval}秒`);
             refreshTimer = setInterval(() => {
                 if (!isPaused) {
-                    // 检查是否已选座位，如有则停止刷新并提交
+                    // 检查是否已选座位，如有则停止刷新并点击提交按钮
                     if (checkAndSubmitIfSeatsSelected()) {
                         console.log("检测到已选座位，停止自动刷新");
                         return;
