@@ -36,9 +36,9 @@
         autoSelectSeat: false,
         preferredArea: '',
         preferredGrade: '',
-        seatCount: 2,
+        seatCount: 1,     // 默认改为1个
         autoRefresh: false,    // 自动刷新功能开关
-        refreshInterval: 10    // 默认刷新间隔（秒）
+        refreshInterval: 5    // 默认改为5秒
     };
 
     // 全局状态变量
