@@ -36,7 +36,9 @@
         autoSelectSeat: false,
         preferredArea: '',
         preferredGrade: '',
-        seatCount: 2
+        seatCount: 2,
+        autoRefresh: false,    // 自动刷新功能开关
+        refreshInterval: 10    // 默认刷新间隔（秒）
     };
 
     // 全局状态变量
@@ -46,6 +48,7 @@
     let selectedSeatCount = 0;
     let seatAreaObserver = null;
     let isPaused = false;
+    let refreshTimer = null;   // 定时刷新计时器
     
     // 全局标识符 - 在window对象上标记面板状态，避免多个面板
     window.yes24SeatAssistantActive = window.yes24SeatAssistantActive || false;
@@ -118,14 +121,25 @@
     
     // 刷新页面或iframe
     function refreshSeatArea() {
+        // 检查是否已选座位，如果已选择座位则不刷新
+        if (checkAndSubmitIfSeatsSelected()) {
+            console.log("已选择座位，取消刷新并提交");
+            return;
+        }
+        
         resetSeatSelection();
         
         // 备份配置，便于刷新后恢复
         const savedConfig = {
             autoSelectSeat: config.autoSelectSeat,
             preferredGrade: config.preferredGrade,
-            seatCount: config.seatCount
+            seatCount: config.seatCount,
+            autoRefresh: config.autoRefresh,          // 保存刷新设置
+            refreshInterval: config.refreshInterval   // 保存刷新间隔
         };
+        
+        // 停止自动刷新计时器
+        stopAutoRefresh();
         
         // 重置全局标识
         window.yes24SeatAssistantActive = false;
@@ -261,6 +275,12 @@
             activeIframe = iframe;
             addControlPanel(document); // 将面板添加到主文档
             startSeatMonitoring(doc, seatArea);
+            
+            // 重要：确保在面板初始化后，如果需要，启动自动刷新
+            if (config.autoRefresh && !isPaused) {
+                console.log("面板初始化完成，重新启动自动刷新");
+                startAutoRefresh();
+            }
             
             // 检查面板是否真的创建了
             setTimeout(() => {
@@ -612,6 +632,23 @@
                         </select>
                         <span class="small-note">(最多10个)</span>
                     </div>
+                    
+                    <!-- 添加自动刷新选项 -->
+                    <div class="option-row">
+                        <input type="checkbox" id="autoRefresh" class="custom-checkbox" ${config.autoRefresh ? 'checked' : ''}>
+                        <label for="autoRefresh" class="option-label">自动刷新并提交下一步</label>
+                    </div>
+                    
+                    <div class="option-row">
+                        <span class="option-label">刷新间隔:</span>
+                        <select id="refreshInterval" class="custom-select" ${!config.autoRefresh ? 'disabled' : ''}>
+                            <option value="5" ${config.refreshInterval === 5 ? 'selected' : ''}>5秒</option>
+                            <option value="10" ${config.refreshInterval === 10 ? 'selected' : ''}>10秒</option>
+                            <option value="15" ${config.refreshInterval === 15 ? 'selected' : ''}>15秒</option>
+                            <option value="20" ${config.refreshInterval === 20 ? 'selected' : ''}>20秒</option>
+                            <option value="30" ${config.refreshInterval === 30 ? 'selected' : ''}>30秒</option>
+                        </select>
+                    </div>
                 </div>
                 
                 ${debug ? `
@@ -699,6 +736,35 @@
             document.getElementById('highlightSeats').addEventListener('click', highlightAllSeats);
         }
         
+        // 添加自动刷新相关事件监听
+        document.getElementById('autoRefresh').addEventListener('change', function() {
+            config.autoRefresh = this.checked;
+            const intervalSelect = document.getElementById('refreshInterval');
+            intervalSelect.disabled = !this.checked;
+            
+            if (this.checked) {
+                console.log(`启用自动刷新，间隔${config.refreshInterval}秒`);
+                showMessage(`已启用自动刷新，间隔${config.refreshInterval}秒`, "info", document);
+                startAutoRefresh();
+            } else {
+                console.log('停用自动刷新');
+                showMessage('已停用自动刷新', "info", document);
+                stopAutoRefresh();
+            }
+        });
+        
+        document.getElementById('refreshInterval').addEventListener('change', function() {
+            config.refreshInterval = parseInt(this.value);
+            console.log(`设置刷新间隔为${config.refreshInterval}秒`);
+            
+            if (config.autoRefresh) {
+                // 重新启动计时器使用新的间隔
+                stopAutoRefresh();
+                startAutoRefresh();
+                showMessage(`刷新间隔已更新为${config.refreshInterval}秒`, "info", document);
+            }
+        });
+
         // 标记为已激活
         window.yes24SeatAssistantActive = true;
         console.log("助手已标记为激活状态");
@@ -839,6 +905,11 @@
             status.classList.remove('analyzing');
             
             if (seatAreaObserver) seatAreaObserver.disconnect();
+            
+            // 暂停时也暂停自动刷新
+            if (config.autoRefresh) {
+                stopAutoRefresh();
+            }
         } else {
             btn.innerHTML = '<span class="btn-icon">⏯️</span>暂停';
             status.textContent = "分析中...";
@@ -848,6 +919,11 @@
             if (activeSeatDocument) {
                 const seatArea = activeSeatDocument.querySelector(config.seatSelectors.container);
                 if (seatArea) startSeatMonitoring(activeSeatDocument, seatArea);
+            }
+            
+            // 解除暂停时，如果启用了自动刷新，重新开始刷新
+            if (config.autoRefresh) {
+                startAutoRefresh();
             }
         }
     }
@@ -1417,5 +1493,122 @@
             }
             return null;
         }
+    }
+
+    // 停止自动刷新
+    function stopAutoRefresh() {
+        if (refreshTimer) {
+            console.log(`停止自动刷新，清除定时器: ${refreshTimer}`);
+            clearInterval(refreshTimer);
+            refreshTimer = null;
+        }
+    }
+
+    // 开始自动刷新
+    function startAutoRefresh() {
+        // 先停止可能存在的计时器
+        stopAutoRefresh();
+        
+        if (config.autoRefresh && !isPaused) {
+            console.log(`启动自动刷新，间隔: ${config.refreshInterval}秒`);
+            refreshTimer = setInterval(() => {
+                if (!isPaused) {
+                    // 检查是否已选座位，如有则停止刷新并提交
+                    if (checkAndSubmitIfSeatsSelected()) {
+                        console.log("检测到已选座位，停止自动刷新");
+                        return;
+                    }
+                    
+                    console.log(`执行定时刷新 (间隔: ${config.refreshInterval}秒)`);
+                    refreshSeatArea();
+                }
+            }, config.refreshInterval * 1000);
+            
+            // 添加调试日志确认定时器已启动
+            console.log(`自动刷新定时器已设置，定时器ID: ${refreshTimer}`);
+        }
+    }
+
+    // 检查是否已选座位并提交
+    function checkAndSubmitIfSeatsSelected() {
+        const currentSelectedCount = getSelectedSeatsCount();
+        if (currentSelectedCount > 0) {
+            // 如果有座位被选中，停止自动刷新并点击提交按钮
+            stopAutoRefresh();
+            submitSeatSelection();
+            return true;
+        }
+        return false;
+    }
+
+    // 提交座位选择 - 只查找并点击预定按钮
+    function submitSeatSelection() {
+        try {
+            if (!activeSeatDocument) {
+                console.log("无法提交座位选择：文档未加载");
+                return false;
+            }
+            
+            const selectedCount = getSelectedSeatsCount();
+            if (selectedCount === 0) {
+                console.log("没有已选座位，不执行提交");
+                return false;
+            }
+            
+            console.log(`检测到${selectedCount}个已选座位，尝试提交...`);
+            
+            // 直接查找预定按钮 - 使用常见id或class
+            const bookingButton = activeSeatDocument.querySelector('#choicend, .booking, [class*="booking"], a.choice_end');
+            
+            if (bookingButton) {
+                showMessage(`已选择${selectedCount}个座位，自动提交中...`, "info", document);
+                console.log(`找到预定按钮，执行点击`);
+                
+                // 点击预定按钮
+                bookingButton.click();
+                
+                // 更新状态
+                if (document.getElementById('seatStatus')) {
+                    document.getElementById('seatStatus').textContent = "已提交座位选择";
+                    document.getElementById('seatStatus').style.color = "#20c997";
+                }
+                
+                return true;
+            } else {
+                console.log("未找到预定按钮");
+                showMessage("已选择座位，但未找到预定按钮", "error", document);
+                return false;
+            }
+        } catch (e) {
+            console.error("提交座位时出错:", e);
+            return false;
+        }
+    }
+
+    // 获取已选座位数量 - 从多个可能的来源获取
+    function getSelectedSeatsCount() {
+        if (!activeSeatDocument) return 0;
+        
+        const doc = activeSeatDocument;
+        let count = 0;
+        
+        // 方法1: 从#liSelSeat中查找
+        const liSelSeat = doc.querySelector('#liSelSeat');
+        if (liSelSeat) {
+            count = liSelSeat.querySelectorAll('p').length;
+            console.log(`从#liSelSeat中找到${count}个已选座位`);
+            if (count > 0) return count;
+        }
+        
+        // 方法2: 从.seat-selected中查找
+        const selectedSeatsElements = doc.querySelectorAll('.seat-selected, .sel-seat, .selected');
+        if (selectedSeatsElements && selectedSeatsElements.length > 0) {
+            count = selectedSeatsElements.length;
+            console.log(`从.seat-selected中找到${count}个已选座位`);
+            if (count > 0) return count;
+        }
+        
+        // 方法3: 使用已保存的selectedSeatCount
+        return selectedSeatCount;
     }
 })();
