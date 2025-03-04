@@ -1,8 +1,0 @@
-{
-    "name": "UserScript",
-    "version": "1.0.0",
-    "description": "UserScript Template",
-    "author": "Yoki",
-    "namespace": "http://tampermonkey.net/",
-    "run-at": "document-end"
-  }
