@@ -1,0 +1,17 @@
+{
+  "name": "yes",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:yes24": "vite build --mode yes24",
+    "build:ocr": "vite build --mode ocr",
+    "build:melon": "vite build --mode melon"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0",
+    "vite-plugin-monkey": "^5.0.8"
+  }
+}
