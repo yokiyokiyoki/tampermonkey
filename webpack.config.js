@@ -1,73 +1,78 @@
 const path = require('path');
-const WebpackUserscript = require('webpack-userscript');
+const webpack = require('webpack');
+const TerserPlugin = require('terser-webpack-plugin');
 
-// 定义脚本配置
-const scripts = {
-  yes24: {
-    entry: './src/yes24/main.js',
-    name: 'yes24座位分析助手',
-    description: '分析yes24网站上的座位可选状态',
-    match: ['*://ticket.yes24.com/*']
+module.exports = {
+  mode: 'production',
+  entry: {
+    'yes24_seat_helper': './src/yes24/main.js'
   },
-  ocr: {
-    entry: './src/ocr/main.js',
-    name: 'OCR助手',
-    description: '图片文字识别工具',
-    match: ['*://*/*']
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].user.js'
   },
-  melon: {
-    entry: './src/melon/main.js',
-    name: 'Melon音乐助手',
-    description: 'Melon音乐网站增强工具',
-    match: ['*://www.melon.com/*']
-  }
-};
-
-// 创建多入口配置
-module.exports = (env, argv) => {
-  // 根据打包参数选择要构建的脚本
-  const scriptName = env.script;
-  const targetScripts = scriptName ? { [scriptName]: scripts[scriptName] } : scripts;
-  
-  // 生成多个配置
-  return Object.entries(targetScripts).map(([key, script]) => {
-    return {
-      entry: script.entry,
-      output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: `${key}.user.js`
-      },
-      module: {
-        rules: [
-          {
-            test: /\.js$/,
-            exclude: /node_modules/,
-            use: {
-              loader: 'babel-loader',
-              options: {
-                presets: ['@babel/preset-env']
-              }
-            }
-          }
-        ]
-      },
-      plugins: [
-        new WebpackUserscript({
-          headers: {
-            name: script.name,
-            namespace: 'http://tampermonkey.net/',
-            version: '1.2',
-            description: script.description,
-            author: 'Yoki',
-            match: script.match,
-            grant: [
-              'GM_setValue',
-              'GM_getValue',
-              'GM_notification'
+  resolve: {
+    extensions: ['.js']
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        extractComments: false,
+        terserOptions: {
+          format: {
+            comments: (node, comment) => {
+              return comment.value.includes('UserScript') || comment.value.includes('@');
+            },
+          },
+        }
+      }),
+    ],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              ['@babel/preset-env', {
+                targets: {
+                  browsers: ['last 2 versions', 'ie >= 11']
+                },
+                modules: false
+              }]
+            ],
+            plugins: [
+              '@babel/plugin-transform-runtime'
             ]
           }
-        })
-      ]
-    };
-  });
+        }
+      }
+    ]
+  },
+  plugins: [
+    new webpack.BannerPlugin({
+      banner: `// ==UserScript==
+// @name         yes24座位分析助手
+// @namespace    http://tampermonkey.net/
+// @version      1.2
+// @description  分析yes24网站上的座位可选状态，支持限制座位选择数量，使用DOM观察器替代轮询
+// @author       You
+// @match        *://ticket.yes24.com/*
+// @match        *://*.ticket.yes24.com/*
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_notification
+// @grant        window.focus
+// @run-at       document-end
+// ==/UserScript==
+
+`,
+      raw: true,
+      entryOnly: true
+    })
+  ]
 };

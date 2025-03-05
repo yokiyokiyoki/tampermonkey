@@ -8,11 +8,13 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.9",
+    "@babel/plugin-transform-runtime": "^7.26.9",
     "@babel/preset-env": "^7.26.9",
     "babel-loader": "^10.0.0",
     "webpack": "^5.98.0",
     "webpack-cli": "^6.0.1",
-    "webpack-userscript": "^3.2.3"
+    "webpack-userscript": "^3.2.3",
+    "@babel/runtime": "^7.26.9"
   },
   "scripts": {
     "build": "webpack --mode=production",
