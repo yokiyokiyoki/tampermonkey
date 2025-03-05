@@ -1,6 +1,7 @@
 /**
  * iframe检测模块 - 检测seat frame并进行处理
  */
+import { initSeatAssistant } from './seatAssistant';
 
 // iframe检测初始化
 export function initIframeDetector() {
@@ -53,14 +54,19 @@ function setupObserver() {
 
 // 处理找到iframe的情况
 function handleIframeFound(iframe) {
-    // 显示提醒
-    alert('已发现座位选择框架，座位助手已准备就绪！');
+    console.log('发现座位iframe，准备初始化座位助手');
     
-    console.log('座位iframe信息:', iframe);
-    
-    // 监听iframe内容变化
-    iframe.addEventListener('load', function() {
-        console.log('座位iframe内容已加载');
-        // 这里可以添加后续处理，如初始化座位选择助手等
-    });
+    // 确保iframe内容已加载
+    if (iframe.contentDocument && 
+        iframe.contentDocument.readyState === 'complete' && 
+        iframe.contentDocument.querySelector('.seatarea')) {
+        console.log('iframe内容已加载，直接初始化座位助手');
+        initSeatAssistant(iframe);
+    } else {
+        // 监听iframe加载事件
+        iframe.addEventListener('load', function() {
+            console.log('座位iframe内容已加载完成');
+            initSeatAssistant(iframe);
+        });
+    }
 }

@@ -7,7 +7,7 @@ import { initIframeDetector } from './modules/iframeDetector';
     
     // 初始化各个模块
     function initialize() {
-        // 初始化iframe检测模块
+        // 初始化iframe检测模块，它会在找到iframe后启动座位助手
         initIframeDetector();
     }
     
