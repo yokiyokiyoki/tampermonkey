@@ -1,4 +1,5 @@
 import { initIframeDetector } from './modules/iframeDetector';
+import { initAlertHandler } from './modules/alertHandler';
 
 (function() {
     'use strict';
@@ -7,6 +8,9 @@ import { initIframeDetector } from './modules/iframeDetector';
     
     // 初始化各个模块
     function initialize() {
+        // 初始化Alert自动处理模块
+        initAlertHandler();
+        
         // 初始化iframe检测模块，它会在找到iframe后启动座位助手
         initIframeDetector();
     }
