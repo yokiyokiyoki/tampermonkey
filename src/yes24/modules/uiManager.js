@@ -52,7 +52,7 @@ export function createControlPanel(seatInfo) {
             </div>
             
             <div class="seat-assistant-section">
-                <div class="seat-assistant-section-title">座位类型</div>
+                <div class="seat-assistant-section-title">可选座位类型</div>
                 <div class="seat-count-grid">
                     <div class="seat-count-item">
                         <div class="seat-count-label">VIP席</div>
@@ -90,9 +90,6 @@ export function createControlPanel(seatInfo) {
         .addEventListener('click', () => {
             panel.remove();
         });
-    
-    // 添加可拖动功能
-    makePanelDraggable(panel);
     
     console.log('面板创建完成');
 }
@@ -154,7 +151,6 @@ function addStyles() {
             padding: 12px 15px;
             background: linear-gradient(135deg, #4568dc, #3a6073);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            cursor: move;
         }
         
         .seat-assistant-title {
@@ -258,60 +254,4 @@ function addStyles() {
         }
     `;
     document.head.appendChild(styleElement);
-}
-
-/**
- * 使面板可拖动
- * @param {HTMLElement} panel - 面板元素
- */
-function makePanelDraggable(panel) {
-    const header = panel.querySelector('.seat-assistant-header');
-    let isDragging = false;
-    let offsetX, offsetY;
-    
-    header.addEventListener('mousedown', e => {
-        // 如果点击了关闭按钮，不触发拖动
-        if (e.target.classList.contains('seat-assistant-close')) return;
-        
-        isDragging = true;
-        offsetX = e.clientX - panel.getBoundingClientRect().left;
-        offsetY = e.clientY - panel.getBoundingClientRect().top;
-        
-        // 添加临时样式提示正在拖动
-        panel.style.opacity = '0.8';
-        panel.style.transition = 'none';
-        
-        e.preventDefault();
-    });
-    
-    document.addEventListener('mousemove', e => {
-        if (!isDragging) return;
-        
-        const newX = e.clientX - offsetX;
-        const newY = e.clientY - offsetY;
-        
-        // 确保面板不会完全移出可视区域
-        const panelWidth = panel.offsetWidth;
-        const panelHeight = panel.offsetHeight;
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-        
-        // 至少保留80px在视窗内
-        const limitedX = Math.min(Math.max(newX, -panelWidth + 80), windowWidth - 80);
-        const limitedY = Math.min(Math.max(newY, 0), windowHeight - 40);
-        
-        panel.style.left = limitedX + 'px';
-        panel.style.top = limitedY + 'px';
-        panel.style.right = 'auto'; // 清除可能的right值
-        
-        e.preventDefault();
-    });
-    
-    document.addEventListener('mouseup', () => {
-        if (isDragging) {
-            isDragging = false;
-            panel.style.opacity = '1';
-            panel.style.transition = 'opacity 0.3s ease';
-        }
-    });
 }
