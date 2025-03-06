@@ -12,7 +12,8 @@ export function analyzeSeatInfo(doc) {
         // 座位区域选择器
         const selectors = {
             allSeats: '#divSeatArray div[class^="s"]',
-            availableSeats: '#divSeatArray div.s13',
+            // 修正：s13是不可选的，可选座位是s9(VIP席), s6(R席), s8(S席)
+            availableSeats: '#divSeatArray div.s9, #divSeatArray div.s6, #divSeatArray div.s8',
             vipSeats: '#divSeatArray div.s9',
             rSeats: '#divSeatArray div.s6',
             sSeats: '#divSeatArray div.s8',
@@ -33,25 +34,55 @@ export function analyzeSeatInfo(doc) {
         const seatsWithInfo = allSeats.map(seat => {
             const title = seat.getAttribute('title') || '';
             const id = seat.id || '';
-            let grade = '';
+            const grade = seat.getAttribute('grade') || '';
+            let seatType = '';
             
+            // 修正：判断座位类型和是否可用
             if (seat.classList.contains('s9')) {
-                grade = 'VIP席';
+                seatType = 'VIP席';
+                // VIP席是可选的
+                return {
+                    id: id,
+                    element: seat,
+                    title: title,
+                    grade: grade || seatType,
+                    type: seatType,
+                    isAvailable: true
+                };
             } else if (seat.classList.contains('s6')) {
-                grade = 'R席';
+                seatType = 'R席';
+                // R席是可选的
+                return {
+                    id: id,
+                    element: seat,
+                    title: title,
+                    grade: grade || seatType,
+                    type: seatType,
+                    isAvailable: true
+                };
             } else if (seat.classList.contains('s8')) {
-                grade = 'S席';
+                seatType = 'S席';
+                // S席是可选的
+                return {
+                    id: id,
+                    element: seat,
+                    title: title,
+                    grade: grade || seatType,
+                    type: seatType,
+                    isAvailable: true
+                };
             } else {
-                grade = '普通席';
+                seatType = '已售/不可用';
+                // 其他类型（如s13）是不可选的
+                return {
+                    id: id,
+                    element: seat,
+                    title: title,
+                    grade: grade || '普通席',
+                    type: seatType,
+                    isAvailable: false
+                };
             }
-            
-            return {
-                id: id,
-                element: seat,
-                title: title,
-                grade: grade,
-                isAvailable: seat.classList.contains('s13')
-            };
         });
         
         // 提取已选座位信息
@@ -66,7 +97,7 @@ export function analyzeSeatInfo(doc) {
         // 返回座位信息对象
         return {
             total: allSeats.length,
-            available: availableSeats.length,
+            available: availableSeats.length, // 注意这里使用修正后的可用座位选择器
             vip: vipSeats.length,
             r: rSeats.length,
             s: sSeats.length,
