@@ -8,11 +8,15 @@ export function initIframeDetector() {
     console.log('初始化iframe检测模块');
     checkForIframe();
 }
+// 获取iframe元素
+export function getIframe(){
+    return document.querySelector('iframe[name="ifrmSeatFrame"]');
+}
 
 // 检查iframe是否存在
 function checkForIframe() {
     // 先直接检查是否已存在
-    const iframe = document.querySelector('iframe[name="ifrmSeatFrame"]');
+    const iframe = getIframe();
     if (iframe) {
         handleIframeFound(iframe);
         return;

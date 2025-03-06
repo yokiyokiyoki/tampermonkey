@@ -162,13 +162,21 @@ export function analyzeSeatInfo(doc) {
             allSeatsInfo: seatsWithInfo
         };
         
+        
         console.log('分析座位信息完成，共发现：', {
             总座位: result.total,
             可选座位: result.available,
             VIP席: result.vip,
             R席: result.r,
             S席: result.s,
-            已选座位: result.selected
+            已选座位: result.selected,
+            seatsWithInfo: result.seatsWithInfo,
+            selectedSeatsInfo: result.selectedSeatsInfo,
+            vipInfo: result.vipInfo,
+            rInfo: result.rInfo,
+            sInfo: result.sInfo,
+            availableInfo: result.availableInfo,
+            allSeatsInfo: result.allSeatsInfo
         });
         
         return result;
