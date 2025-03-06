@@ -1,26 +1,37 @@
 {
-  "name": "tampermonkey",
+  "name": "tampermonkey-scripts",
   "version": "1.0.0",
-  "description": "油猴脚本集合",
-  "main": "webpack.config.js",
+  "description": "A collection of useful tampermonkey scripts",
+  "main": "index.js",
   "directories": {
     "doc": "docs"
   },
-  "devDependencies": {
-    "@babel/core": "^7.26.9",
-    "@babel/plugin-transform-runtime": "^7.26.9",
-    "@babel/preset-env": "^7.26.9",
-    "babel-loader": "^10.0.0",
-    "webpack": "^5.98.0",
-    "webpack-cli": "^6.0.1",
-    "webpack-userscript": "^3.2.3",
-    "@babel/runtime": "^7.26.9"
-  },
   "scripts": {
-    "build": "webpack --mode=production",
-    "build:yes24": "webpack --mode=production --env script=yes24",
+    "build": "webpack --config webpack.config.js",
+    "watch": "webpack --config webpack.config.js --watch",
+    "build:yes24-seat": "webpack --mode=production --env script=yes24-seat",
     "build:ocr": "webpack --mode=production --env script=ocr",
     "build:melon": "webpack --mode=production --env script=melon",
     "dev": "webpack --mode=development --watch"
+  },
+  "keywords": [
+    "tampermonkey",
+    "userscript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/runtime": "^7.15.4",
+    "glob": "^7.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.15.5",
+    "@babel/plugin-transform-runtime": "^7.15.5",
+    "@babel/preset-env": "^7.15.6",
+    "babel-loader": "^8.2.2",
+    "terser-webpack-plugin": "^5.2.4",
+    "webpack": "^5.52.1",
+    "webpack-cli": "^4.8.0",
+    "webpack-userscript": "^3.2.3"
   }
 }

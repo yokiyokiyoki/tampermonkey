@@ -1,12 +1,102 @@
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
+const fs = require('fs');
+const glob = require('glob');
+
+// 获取脚本元数据
+function getScriptMeta(scriptName) {
+  const metaData = {
+    yes24_seat_helper: {
+      name: 'yes24座位分析助手',
+      version: '1.3',
+      description: '分析yes24网站上的座位可选状态，支持自动抢票、自动锁票和自动刷新功能',
+      author: 'You',
+      match: [
+        '*://ticket.yes24.com/*',
+        '*://*.ticket.yes24.com/*'
+      ],
+      grants: [
+        'GM_setValue',
+        'GM_getValue',
+        'GM_notification',
+        'window.focus'
+      ]
+    }
+    // 可以在这里添加更多脚本的元数据
+  };
+  
+  return metaData[scriptName] || {
+    name: scriptName,
+    version: '1.0',
+    description: '油猴脚本',
+    author: 'You',
+    match: ['*://*/*']
+  };
+}
+
+// 自动扫描入口文件
+function getEntries() {
+  const entries = {};
+  const srcDir = path.resolve(__dirname, 'src');
+  
+  // 查找所有一级目录下的main.js文件作为入口
+  const mainFiles = glob.sync(path.join(srcDir, '*/main.js'));
+  
+  mainFiles.forEach(file => {
+    const dirName = path.basename(path.dirname(file));
+    const entryName = `${dirName}_helper`;
+    entries[entryName] = file;
+  });
+  
+  return entries;
+}
+
+// 根据入口名生成UserScript头信息
+function generateBanner(entryName) {
+  const meta = getScriptMeta(entryName);
+  
+  let banner = `// ==UserScript==\n`;
+  banner += `// @name         ${meta.name}\n`;
+  banner += `// @namespace    http://tampermonkey.net/\n`;
+  banner += `// @version      ${meta.version}\n`;
+  banner += `// @description  ${meta.description}\n`;
+  banner += `// @author       ${meta.author}\n`;
+  
+  // 添加所有匹配规则
+  meta.match.forEach(match => {
+    banner += `// @match        ${match}\n`;
+  });
+  
+  // 添加所有授权
+  if (meta.grants && meta.grants.length) {
+    meta.grants.forEach(grant => {
+      banner += `// @grant        ${grant}\n`;
+    });
+  }
+  
+  banner += `// @run-at       document-end\n`;
+  banner += `// ==/UserScript==\n\n`;
+  return banner;
+}
+
+// 生成多入口的banner插件配置
+function generateBannerPlugins(entries) {
+  return Object.keys(entries).map(entryName => {
+    return new webpack.BannerPlugin({
+      banner: generateBanner(entryName),
+      raw: true,
+      entryOnly: true,
+      test: new RegExp(`${entryName}\.user\.js$`)
+    });
+  });
+}
+
+const entries = getEntries();
 
 module.exports = {
   mode: 'production',
-  entry: {
-    'yes24_seat_helper': './src/yes24/main.js'
-  },
+  entry: entries,
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].user.js'
@@ -52,25 +142,7 @@ module.exports = {
     ]
   },
   plugins: [
-    new webpack.BannerPlugin({
-      banner: `// ==UserScript==
-// @name         yes24座位分析助手
-// @namespace    http://tampermonkey.net/
-// @version      1.2
-// @description  分析yes24网站上的座位可选状态，支持限制座位选择数量，使用DOM观察器替代轮询
-// @author       You
-// @match        *://ticket.yes24.com/*
-// @match        *://*.ticket.yes24.com/*
-// @grant        GM_setValue
-// @grant        GM_getValue
-// @grant        GM_notification
-// @grant        window.focus
-// @run-at       document-end
-// ==/UserScript==
-
-`,
-      raw: true,
-      entryOnly: true
-    })
+    // 为每个入口添加对应的banner
+    ...generateBannerPlugins(entries)
   ]
 };
