@@ -87,7 +87,7 @@ export function createControlPanel(seatInfo) {
                         </select>
                     </div>
                     <div class="auto-seat-item checkbox-container">
-                        <input type="checkbox" id="autoLock" class="seat-checkbox">
+                        <input type="checkbox" id="autoLock" class="seat-checkbox" checked>
                         <label for="autoLock">自动点击锁票按钮</label>
                     </div>
                     <div class="auto-seat-item">
