@@ -91,6 +91,4 @@ export function autoRefreshIframe(time){
             iframe.contentWindow.location.reload();
         }
     }, time * 1000);
-
-    return intervalId;
 }

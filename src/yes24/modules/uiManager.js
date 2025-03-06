@@ -92,7 +92,7 @@ export function createControlPanel(seatInfo) {
                     </div>
                     <div class="auto-seat-item">
                         <label for="refreshInterval">自动刷新间隔(秒):</label>
-                        <input type="number" id="refreshInterval" min="0" max="180" value="0" class="seat-input" style="width: 60px;">
+                        <input type="number" id="refreshInterval" min="0" max="180" value="5" class="seat-input" style="width: 60px;">
                         <span class="seat-hint">(0表示不刷新，1-180秒)</span>
                     </div>
                     <div class="auto-seat-item">
