@@ -74,3 +74,23 @@ function handleIframeFound(iframe) {
         });
     }
 }
+
+
+/**
+ * 根据传入的时间自动刷新iframe
+ * 0s：表示不刷新
+ * 
+ */
+export function autoRefreshIframe(time){
+    if(time == 0){
+        return;
+    }
+    setInterval(() => {
+        const iframe = getIframe();
+        if(iframe){
+            iframe.contentWindow.location.reload();
+        }
+    }, time * 1000);
+
+    return intervalId;
+}
