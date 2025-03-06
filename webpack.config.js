@@ -21,9 +21,7 @@ module.exports = {
         extractComments: false,
         terserOptions: {
           format: {
-            comments: (node, comment) => {
-              return comment.value.includes('UserScript') || comment.value.includes('@');
-            },
+            comments: /^\s*(==\/?UserScript==|@(name|namespace|version|description|author|match|grant|run-at)\b)/,
           },
         }
       }),
