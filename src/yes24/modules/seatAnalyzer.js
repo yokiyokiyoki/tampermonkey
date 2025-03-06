@@ -85,6 +85,56 @@ export function analyzeSeatInfo(doc) {
             }
         });
         
+        // 处理VIP、R、S等座位的详细信息
+        const vipInfo = vipSeats.map(seat => {
+            return {
+                id: seat.id || '',
+                element: seat,
+                title: seat.getAttribute('title') || '',
+                grade: seat.getAttribute('grade') || 'VIP席',
+                type: 'VIP席',
+                isAvailable: true
+            };
+        });
+        
+        const rInfo = rSeats.map(seat => {
+            return {
+                id: seat.id || '',
+                element: seat,
+                title: seat.getAttribute('title') || '',
+                grade: seat.getAttribute('grade') || 'R席',
+                type: 'R席',
+                isAvailable: true
+            };
+        });
+        
+        const sInfo = sSeats.map(seat => {
+            return {
+                id: seat.id || '',
+                element: seat,
+                title: seat.getAttribute('title') || '',
+                grade: seat.getAttribute('grade') || 'S席',
+                type: 'S席',
+                isAvailable: true
+            };
+        });
+        
+        const availableInfo = availableSeats.map(seat => {
+            let type = '普通席';
+            if (seat.classList.contains('s9')) type = 'VIP席';
+            else if (seat.classList.contains('s6')) type = 'R席';
+            else if (seat.classList.contains('s8')) type = 'S席';
+            
+            return {
+                id: seat.id || '',
+                element: seat,
+                title: seat.getAttribute('title') || '',
+                grade: seat.getAttribute('grade') || type,
+                type: type,
+                isAvailable: true
+            };
+        });
+        
         // 提取已选座位信息
         const selectedSeatsInfo = selectedSeats.map(seat => {
             const text = seat.textContent || '';
@@ -94,17 +144,34 @@ export function analyzeSeatInfo(doc) {
             };
         });
         
-        // 返回座位信息对象
-        return {
+        // 返回座位信息对象 - 同时包含数量统计和详细信息列表
+        const result = {
             total: allSeats.length,
-            available: availableSeats.length, // 注意这里使用修正后的可用座位选择器
+            available: availableSeats.length,
             vip: vipSeats.length,
             r: rSeats.length,
             s: sSeats.length,
             selected: selectedSeats.length,
             seatsWithInfo: seatsWithInfo,
-            selectedSeatsInfo: selectedSeatsInfo
+            selectedSeatsInfo: selectedSeatsInfo,
+            // 新增详细座位信息列表
+            vipInfo: vipInfo,
+            rInfo: rInfo,
+            sInfo: sInfo,
+            availableInfo: availableInfo,
+            allSeatsInfo: seatsWithInfo
         };
+        
+        console.log('分析座位信息完成，共发现：', {
+            总座位: result.total,
+            可选座位: result.available,
+            VIP席: result.vip,
+            R席: result.r,
+            S席: result.s,
+            已选座位: result.selected
+        });
+        
+        return result;
     } catch (error) {
         console.error('分析座位信息时出错:', error);
         return {
@@ -115,7 +182,12 @@ export function analyzeSeatInfo(doc) {
             s: 0,
             selected: 0,
             seatsWithInfo: [],
-            selectedSeatsInfo: []
+            selectedSeatsInfo: [],
+            vipInfo: [],
+            rInfo: [],
+            sInfo: [],
+            availableInfo: [],
+            allSeatsInfo: []
         };
     }
 }
