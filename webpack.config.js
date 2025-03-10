@@ -7,7 +7,7 @@ const glob = require('glob');
 // 获取脚本元数据
 function getScriptMeta(scriptName) {
   const metaData = {
-    yes24_seat_helper: {
+    'yes24-seat': {
       name: 'yes24座位分析助手',
       version: '1.3',
       description: '分析yes24网站上的座位可选状态，支持自动抢票、自动锁票和自动刷新功能',
@@ -22,12 +22,23 @@ function getScriptMeta(scriptName) {
         'GM_notification',
         'window.focus'
       ]
+    },
+    'ticketlink-next-key': {
+      name: 'Ticketlink M键翻页',
+      version: '1.0',
+      description: '按下M键点击下一页按钮',
+      author: 'Your Name',
+      match: [
+        'https://www.ticketlink.co.kr/global/zh/*'
+      ],
+      grants: []
     }
     // 可以在这里添加更多脚本的元数据
   };
-  
-  return metaData[scriptName] || {
-    name: scriptName,
+  const name = scriptName
+  console.log('name', name)
+  return metaData[name] || {
+    name: name,
     version: '1.0',
     description: '油猴脚本',
     author: 'You',
@@ -45,7 +56,7 @@ function getEntries() {
   
   mainFiles.forEach(file => {
     const dirName = path.basename(path.dirname(file));
-    const entryName = `${dirName}_helper`;
+    const entryName = `${dirName}`;
     entries[entryName] = file;
   });
   
