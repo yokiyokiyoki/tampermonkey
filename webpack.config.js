@@ -11,7 +11,7 @@ function getScriptMeta(scriptName) {
       name: 'yes24座位分析助手',
       version: '1.3',
       description: '分析yes24网站上的座位可选状态，支持自动抢票、自动锁票和自动刷新功能',
-      author: 'You',
+      author: 'yoki',
       match: [
         '*://ticket.yes24.com/*',
         '*://*.ticket.yes24.com/*'
@@ -24,14 +24,14 @@ function getScriptMeta(scriptName) {
       ]
     },
     'ticketlink-next-key': {
-      name: 'Ticketlink M键翻页',
+      name: 'Ticketlink MNJKL翻页并拦截弹窗',
       version: '1.0',
-      description: '按下M键点击下一页按钮',
-      author: 'Your Name',
+      description: '按下MNJKL键点击下一页按钮并拦截alert',
+      author: 'yoki',
       match: [
         'https://www.ticketlink.co.kr/global/zh/*'
       ],
-      grants: []
+      grants: ['unsafeWindow']
     }
     // 可以在这里添加更多脚本的元数据
   };

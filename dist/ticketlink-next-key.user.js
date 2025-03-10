@@ -1,10 +1,11 @@
 // ==UserScript==
-// @name         Ticketlink M键翻页
+// @name         Ticketlink MNJKL翻页并拦截弹窗
 // @namespace    http://tampermonkey.net/
 // @version      1.0
-// @description  按下M键点击下一页按钮
-// @author       Your Name
+// @description  按下MNJKL键点击下一页按钮并拦截alert
+// @author       yoki
 // @match        https://www.ticketlink.co.kr/global/zh/*
+// @grant        unsafeWindow
 // @run-at       document-end
 // ==/UserScript==
-!function(){"use strict";document.addEventListener("keydown",(function(e){if("m"===e.key.toLowerCase()){var o=document.querySelector('[ng-click="right.next()"]');o&&(o.click(),console.log("M键触发下一页点击"));var c=document.querySelector('[ng-click="fn.common.goToNextStep()"]');c&&(c.click(),console.log("M键触发下一页点击"))}}))}();
+(()=>{"use strict";!function(){function t(){var t,e,n,o=(e=function(t,e){var n=document.createElement("div");return n.style.backgroundColor="rgba(0, 0, 0, 0.8)",n.style.color="#fff",n.style.padding="10px 20px",n.style.borderRadius="5px",n.style.boxShadow="0 2px 10px rgba(0, 0, 0, 0.2)",n.style.marginBottom="10px",n.style.opacity="1",n.style.transition="opacity 0.5s",n.style.fontSize="14px",n.textContent=t,e.appendChild(n),setTimeout((function(){n.style.opacity="0",setTimeout((function(){n.parentNode===e&&e.removeChild(n)}),500)}),3e3),n},(t=document.createElement("div")).style.position="fixed",t.style.top="20px",t.style.right="20px",t.style.zIndex="9999",t.style.width="300px",document.body.appendChild(t),n=t,unsafeWindow.alert,unsafeWindow.alert=function(t){e(t,n)},{showMessage:function(t){e(t,n)}}),i=function(t){var e={m:function(){n('[ng-click="right.next()"]',"M键触发下一页点击"),n('[ng-click="fn.common.goToNextStep()"]',"M键触发下一步点击")},n:function(){n('[ng-click="right.next()"]',"N键触发下一页点击"),n('[ng-click="fn.common.goToNextStep()"]',"N键触发下一步点击")},j:function(){n('[ng-click="right.next()"]',"J键触发下一页点击"),n('[ng-click="fn.common.goToNextStep()"]',"J键触发下一步点击")},k:function(){n('[ng-click="right.next()"]',"K键触发下一页点击"),n('[ng-click="fn.common.goToNextStep()"]',"K键触发下一步点击")},l:function(){n('[ng-click="right.next()"]',"L键触发下一页点击"),n('[ng-click="fn.common.goToNextStep()"]',"L键触发下一步点击")}};function n(e,n){var o=document.querySelector(e);return!!o&&(o.click(),t.showMessage(n),!0)}return{init:function(){document.addEventListener("keydown",(function(t){if(!["input","textarea","select"].includes(document.activeElement.tagName.toLowerCase())){var n=t.key.toLowerCase();e[n]&&(t.preventDefault(),e[n]())}}))}}}(o);i.init(),o.showMessage("Ticketlink快捷键助手已启动")}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",t):t()}()})();

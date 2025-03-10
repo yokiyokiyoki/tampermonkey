@@ -1,26 +1,28 @@
+import createAlertModule from './modules/alertModule';
+import createKeyboardModule from './modules/keyboardModule';
+
 (function() {
     'use strict';
 
-    // 监听键盘按下事件
-    document.addEventListener('keydown', function(event) {
-        // 检查按下的键是否是 M（不区分大小写）
-        if (event.key.toLowerCase() === 'm') {
-            // 查找目标元素
-            const nextButton = document.querySelector('[ng-click="right.next()"]');
+    // 初始化所有模块
+    function initApp() {
+        // 初始化自定义alert模块
+        const alertModule = createAlertModule();
+        
+        // 初始化键盘操作模块，并传入alertModule用于显示消息
+        const keyboardModule = createKeyboardModule(alertModule);
+        
+        // 启动键盘监听
+        keyboardModule.init();
+        
+        // 显示初始化成功消息
+        alertModule.showMessage('Ticketlink快捷键助手已启动');
+    }
 
-            // 如果元素存在则模拟点击
-            if (nextButton) {
-                nextButton.click();
-                console.log('M键触发下一页点击');
-            }
-
-            const next2Button = document.querySelector('[ng-click="fn.common.goToNextStep()"]');
-
-            // 如果元素存在则模拟点击
-            if (next2Button) {
-                next2Button.click();
-                console.log('M键触发下一页点击');
-            }
-        }
-    });
+    // 页面加载完成后初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+        initApp();
+    }
 })();

@@ -3,7 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      1.3
 // @description  分析yes24网站上的座位可选状态，支持自动抢票、自动锁票和自动刷新功能
-// @author       You
+// @author       yoki
 // @match        *://ticket.yes24.com/*
 // @match        *://*.ticket.yes24.com/*
 // @grant        GM_setValue
