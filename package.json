@@ -9,10 +9,6 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "watch": "webpack --config webpack.config.js --watch",
-    "build:yes24-seat": "webpack --mode=production --env script=yes24-seat",
-    "build:ticketlink-next-key": "webpack --mode=production --env script=ticketlink-next-key",
-    "build:ocr": "webpack --mode=production --env script=ocr",
-    "build:melon": "webpack --mode=production --env script=melon",
     "dev": "webpack --mode=development --watch"
   },
   "keywords": [
