@@ -52,6 +52,23 @@ function getScriptMeta(scriptName) {
         '*://www.ticketlink.co.kr/global/zh/product/*',
       ],
       grants: ['unsafeWindow']
+    },
+    'ocr': {
+      name: 'OCR脚本',
+      version: '1.0',
+      description: '使用指定ai识别图片',
+      author: 'yoki',
+      match: [
+        '*://**/*',
+      ],
+      grants: [
+        'unsafeWindow',
+        'GM_getValue',
+        'GM_setValue',
+        'GM_setClipboard',
+        'GM_xmlhttpRequest',
+        'GM_registerMenuCommand'
+      ]
     }
     // 可以在这里添加更多脚本的元数据
   };
