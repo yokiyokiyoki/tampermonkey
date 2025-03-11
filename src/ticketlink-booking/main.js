@@ -1,21 +1,29 @@
-// YES24 自动预订脚本
+// TicketLink 自动预订脚本
 // 当页面包含票务信息但没有预订按钮时，添加时间设置面板
 // 在指定时间自动刷新页面并点击预订按钮
 
 // 导入样式
 import { styles } from './modules/styles';
+import createAlertModule from './modules/alertModule';
+
 
 (function() {
   'use strict';
+
+  // 初始化自定义alert模块
+  const alertModule = createAlertModule();
+  // 显示初始化成功消息
+  alertModule.showMessage('Ticketlink指定时间预定助手已启动');
   
   // 添加一个标记，确保按钮只点击一次
   let hasClickedBooking = false;
   
   // 检查页面元素
   function checkElements() {
-    const ticketInfo = document.querySelector('.ticketinfo');
-    const poster = document.querySelector('.poster');
-    const bookingBtn = document.querySelector('a#hlkPurchase');
+    const ticketInfo = document.querySelector('.product_detail_info');
+    const poster = document.querySelector('.product_detail_img');
+    const bookingBtns = document.querySelectorAll('a.common_btn.btn_primary');
+    const bookingBtn = Array.from(bookingBtns).find(btn => btn.textContent.trim() === '购票');
     
     // 如果存在票务信息和海报，但没有预订按钮
     if (ticketInfo && poster && !bookingBtn) {
@@ -61,18 +69,18 @@ import { styles } from './modules/styles';
   // 创建控制面板
   function createControlPanel() {
     // 检查是否已经创建过面板
-    if (document.getElementById('yes24-auto-refresh-panel')) {
+    if (document.getElementById('ticketlink-auto-refresh-panel')) {
       return;
     }
     
     // 创建面板容器
     const panel = document.createElement('div');
-    panel.id = 'yes24-auto-refresh-panel';
+    panel.id = 'ticketlink-auto-refresh-panel';
     panel.style.cssText = styles.panel;
     
     // 创建面板内容
     panel.innerHTML = `
-      <h3 style="${styles.heading}">YES24 自动预订</h3>
+      <h3 style="${styles.heading}">TicketLink 自动预订</h3>
       ${createDateTimePicker()}
       <div style="${styles.buttonContainer}">
         <button id="start-refresh" style="${styles.primaryButton}">

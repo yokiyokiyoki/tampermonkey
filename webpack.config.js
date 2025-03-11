@@ -41,7 +41,17 @@ function getScriptMeta(scriptName) {
       match: [
         '*://ticket.yes24.com/Pages/English/Perf/*',
       ],
-      grants: []
+      grants: ['unsafeWindow']
+    },
+    'ticketlink-booking': {
+      name: 'TicketLink自动刷新预订',
+      version: '1.0',
+      description: '在指定时间自动刷新页面并点击预订按钮',
+      author: 'yoki',
+      match: [
+        '*://www.ticketlink.co.kr/global/zh/product/*',
+      ],
+      grants: ['unsafeWindow']
     }
     // 可以在这里添加更多脚本的元数据
   };
