@@ -1,4 +1,4 @@
-import createAlertModule from './modules/alertModule';
+import createAlertModule from '../common/alertModule';
 import createKeyboardModule from './modules/keyboardModule';
 
 (function() {

@@ -4,7 +4,7 @@
 
 // 导入样式
 import { styles } from './modules/styles';
-import createAlertModule from './modules/alertModule';
+import createAlertModule from '../common/alertModule';
 
 
 (function() {
@@ -30,17 +30,20 @@ import createAlertModule from './modules/alertModule';
       createControlPanel();
     } else if (bookingBtn && !hasClickedBooking) {
       // 如果存在预订按钮，并且还未点击过，则点击一次
-      console.log('找到预订按钮，准备点击一次...');
+      console.log('找到预订按钮，准备点击一次...',bookingBtn);
       
       // 设置标记为已点击
       hasClickedBooking = true;
-      
-      setTimeout(() => bookingBtn.click(), 500);
-      
-      // 点击后移除观察器，避免重复观察
-      if (observer) {
-        observer.disconnect();
-      }
+      // 等form表单完全出来
+      setTimeout(() => {
+        alertModule.showMessage('即将点击预订按钮...');
+        bookingBtn.click();
+        // 点击后移除观察器，避免重复观察
+        if (observer) {
+          observer.disconnect();
+        }
+        alertModule.showMessage('预订按钮已点击');
+      }, 3000);
     }
   }
   
