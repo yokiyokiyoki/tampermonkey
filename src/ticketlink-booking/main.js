@@ -56,14 +56,18 @@ import createAlertModule from '../common/alertModule';
     const day = String(now.getDate()).padStart(2, '0');
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
     
-    // 创建日期时间选择器HTML
+    // 创建日期时间选择器HTML，增加秒级选择
     return `
       <div style="${styles.formGroup}">
         <label style="${styles.label}">设置刷新时间:</label>
         <div style="${styles.dateTimeContainer}">
           <input type="date" id="refresh-date" value="${year}-${month}-${day}" style="${styles.input}">
-          <input type="time" id="refresh-time" value="${hours}:${minutes}" style="${styles.input}">
+          <div style="display: flex; align-items: center;">
+            <input type="time" id="refresh-time" value="${hours}:${minutes}" step="1" style="${styles.input}">
+            <input type="number" id="refresh-seconds" value="${seconds}" min="0" max="59" step="1" style="${styles.input}; width: 60px; margin-left: 5px;" placeholder="秒">
+          </div>
         </div>
       </div>
     `;
@@ -112,6 +116,7 @@ import createAlertModule from '../common/alertModule';
   function startAutoRefresh() {
     const dateInput = document.getElementById('refresh-date').value;
     const timeInput = document.getElementById('refresh-time').value;
+    const secondsInput = document.getElementById('refresh-seconds').value;
     const statusMessage = document.getElementById('status-message');
     const countdownElement = document.getElementById('countdown');
     
@@ -122,12 +127,13 @@ import createAlertModule from '../common/alertModule';
       return;
     }
     
-    // 解析时间
+    // 解析时间，添加秒级处理
     const [hours, minutes] = timeInput.split(':').map(Number);
+    const seconds = parseInt(secondsInput) || 0;
     const [year, month, day] = dateInput.split('-').map(Number);
     
-    // 创建目标时间对象，注意月份从0开始
-    const targetTime = new Date(year, month - 1, day, hours, minutes, 0);
+    // 创建目标时间对象，注意月份从0开始，加入秒级设置
+    const targetTime = new Date(year, month - 1, day, hours, minutes, seconds);
     const now = new Date();
     
     // 检查时间有效性
