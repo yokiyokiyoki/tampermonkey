@@ -57,8 +57,9 @@ import createAlertModule from '../common/alertModule';
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
+    const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
     
-    // 创建日期时间选择器HTML，增加秒级选择
+    // 创建日期时间选择器HTML，增加毫秒级选择
     return `
       <div style="${styles.formGroup}">
         <label style="${styles.label}">设置刷新时间:</label>
@@ -66,7 +67,14 @@ import createAlertModule from '../common/alertModule';
           <input type="date" id="refresh-date" value="${year}-${month}-${day}" style="${styles.input}">
           <div style="display: flex; align-items: center;">
             <input type="time" id="refresh-time" value="${hours}:${minutes}" step="1" style="${styles.input}">
-            <input type="number" id="refresh-seconds" value="${seconds}" min="0" max="59" step="1" style="${styles.input}; width: 60px; margin-left: 5px;" placeholder="秒">
+            <div style="display: flex; flex-direction: column; margin-left: 5px;">
+              <div style="display: flex; align-items: center;">
+                <input type="number" id="refresh-seconds" value="${seconds}" min="0" max="59" step="1" style="${styles.input}; width: 60px;" placeholder="秒">
+                <span style="margin: 0 5px;">.</span>
+                <input type="number" id="refresh-milliseconds" value="${milliseconds}" min="0" max="999" step="1" style="${styles.input}; width: 70px;" placeholder="毫秒">
+              </div>
+              <div style="font-size: 10px; color: #666; text-align: center; margin-top: 2px;">秒.毫秒</div>
+            </div>
           </div>
         </div>
       </div>
@@ -117,6 +125,7 @@ import createAlertModule from '../common/alertModule';
     const dateInput = document.getElementById('refresh-date').value;
     const timeInput = document.getElementById('refresh-time').value;
     const secondsInput = document.getElementById('refresh-seconds').value;
+    const millisecondsInput = document.getElementById('refresh-milliseconds').value;
     const statusMessage = document.getElementById('status-message');
     const countdownElement = document.getElementById('countdown');
     
@@ -127,13 +136,14 @@ import createAlertModule from '../common/alertModule';
       return;
     }
     
-    // 解析时间，添加秒级处理
+    // 解析时间，添加毫秒级处理
     const [hours, minutes] = timeInput.split(':').map(Number);
     const seconds = parseInt(secondsInput) || 0;
+    const milliseconds = parseInt(millisecondsInput) || 0;
     const [year, month, day] = dateInput.split('-').map(Number);
     
-    // 创建目标时间对象，注意月份从0开始，加入秒级设置
-    const targetTime = new Date(year, month - 1, day, hours, minutes, seconds);
+    // 创建目标时间对象，注意月份从0开始，加入毫秒级设置
+    const targetTime = new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
     const now = new Date();
     
     // 检查时间有效性
@@ -147,7 +157,7 @@ import createAlertModule from '../common/alertModule';
     const timeDifference = targetTime.getTime() - now.getTime();
     
     // 设置状态
-    statusMessage.textContent = `将在 ${targetTime.toLocaleString()} 刷新页面`;
+    statusMessage.textContent = `将在 ${targetTime.toLocaleString()} ${milliseconds}毫秒 刷新页面`;
     statusMessage.style.color = '#008800';
     
     // 清除之前的计时器
@@ -174,9 +184,10 @@ import createAlertModule from '../common/alertModule';
       const hours = Math.floor(remainingTime / (1000 * 60 * 60));
       const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+      const milliseconds = remainingTime % 1000;
       
-      countdownElement.textContent = `倒计时: ${hours}时 ${minutes}分 ${seconds}秒`;
-    }, 1000);
+      countdownElement.textContent = `倒计时: ${hours}时 ${minutes}分 ${seconds}秒 ${milliseconds}毫秒`;
+    }, 10); // 更新为10毫秒一次以获得更精确的毫秒显示
   }
   
   // 取消自动刷新
