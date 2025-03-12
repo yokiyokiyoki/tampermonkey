@@ -85,7 +85,12 @@ export const styles = {
   
   dateTimeContainer: `
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     gap: 5px;
+  `,
+  
+  inputContainer: `
+    margin-bottom: 8px;
+    width: 100%;
   `
 };

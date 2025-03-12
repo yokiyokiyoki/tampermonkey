@@ -59,22 +59,23 @@ import createAlertModule from '../common/alertModule';
     const seconds = String(now.getSeconds()).padStart(2, '0');
     const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
     
-    // 创建日期时间选择器HTML，增加毫秒级选择
+    // 创建日期时间选择器HTML，优化布局确保对齐
     return `
       <div style="${styles.formGroup}">
         <label style="${styles.label}">设置刷新时间:</label>
         <div style="${styles.dateTimeContainer}">
-          <input type="date" id="refresh-date" value="${year}-${month}-${day}" style="${styles.input}">
-          <div style="display: flex; align-items: center;">
-            <input type="time" id="refresh-time" value="${hours}:${minutes}" step="1" style="${styles.input}">
-            <div style="display: flex; flex-direction: column; margin-left: 5px;">
-              <div style="display: flex; align-items: center;">
-                <input type="number" id="refresh-seconds" value="${seconds}" min="0" max="59" step="1" style="${styles.input}; width: 60px;" placeholder="秒">
-                <span style="margin: 0 5px;">.</span>
-                <input type="number" id="refresh-milliseconds" value="${milliseconds}" min="0" max="999" step="1" style="${styles.input}; width: 70px;" placeholder="毫秒">
-              </div>
-              <div style="font-size: 10px; color: #666; text-align: center; margin-top: 2px;">秒.毫秒</div>
-            </div>
+          <!-- 所有输入框使用相同的样式基础 -->
+          <div style="${styles.inputContainer}">
+            <input type="date" id="refresh-date" value="${year}-${month}-${day}" 
+                   style="${styles.input};">
+          </div>
+          <div style="${styles.inputContainer}">
+            <input type="time" id="refresh-time" value="${hours}:${minutes}:${seconds}" step="1" 
+                   style="${styles.input};">
+          </div>
+          <div style="${styles.inputContainer}">
+            <input type="number" id="refresh-milliseconds" value="${milliseconds}" min="0" max="999" step="1" 
+                   placeholder="100" style="${styles.input};">
           </div>
         </div>
       </div>
@@ -88,10 +89,12 @@ import createAlertModule from '../common/alertModule';
       return;
     }
     
-    // 创建面板容器
+    // 创建面板容器 - 确保宽度足够
     const panel = document.createElement('div');
     panel.id = 'ticketlink-auto-refresh-panel';
-    panel.style.cssText = styles.panel;
+    
+    const customPanelStyle = styles.panel 
+    panel.style.cssText = customPanelStyle;
     
     // 创建面板内容
     panel.innerHTML = `
@@ -124,7 +127,6 @@ import createAlertModule from '../common/alertModule';
   function startAutoRefresh() {
     const dateInput = document.getElementById('refresh-date').value;
     const timeInput = document.getElementById('refresh-time').value;
-    const secondsInput = document.getElementById('refresh-seconds').value;
     const millisecondsInput = document.getElementById('refresh-milliseconds').value;
     const statusMessage = document.getElementById('status-message');
     const countdownElement = document.getElementById('countdown');
@@ -136,13 +138,15 @@ import createAlertModule from '../common/alertModule';
       return;
     }
     
-    // 解析时间，添加毫秒级处理
-    const [hours, minutes] = timeInput.split(':').map(Number);
-    const seconds = parseInt(secondsInput) || 0;
+    // 解析时间，从时间输入框获取时、分、秒
+    const timeParts = timeInput.split(':').map(Number);
+    const hours = timeParts[0] || 0;
+    const minutes = timeParts[1] || 0;
+    const seconds = timeParts[2] || 0;
     const milliseconds = parseInt(millisecondsInput) || 0;
     const [year, month, day] = dateInput.split('-').map(Number);
     
-    // 创建目标时间对象，注意月份从0开始，加入毫秒级设置
+    // 创建目标时间对象，注意月份从0开始
     const targetTime = new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
     const now = new Date();
     
@@ -156,8 +160,8 @@ import createAlertModule from '../common/alertModule';
     // 计算时间差（毫秒）
     const timeDifference = targetTime.getTime() - now.getTime();
     
-    // 设置状态
-    statusMessage.textContent = `将在 ${targetTime.toLocaleString()} ${milliseconds}毫秒 刷新页面`;
+    // 设置状态 - 优化显示格式
+    statusMessage.textContent = `将在 ${year}/${month}/${day} ${hours}:${minutes}:${seconds}.${milliseconds} 刷新页面`;
     statusMessage.style.color = '#008800';
     
     // 清除之前的计时器
