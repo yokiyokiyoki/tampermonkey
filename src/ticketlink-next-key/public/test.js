@@ -3,7 +3,7 @@
     // 保存原始console方法
     const originalConsole = {
       log: console.log,
-      clear: console.clear,
+      clear: ()=>{},
       debug: console.debug,
       info: console.info,
       warn: console.warn,
@@ -33,6 +33,7 @@
       return originalAlert.apply(this, arguments);
     };
     
+    
     // 禁用各种事件监听器
     const originalAddEventListener = EventTarget.prototype.addEventListener;
     EventTarget.prototype.addEventListener = function(type, listener, options) {
@@ -43,3 +44,7 @@
       return originalAddEventListener.call(this, type, listener, options);
     };
   })();
+
+
+
+  
