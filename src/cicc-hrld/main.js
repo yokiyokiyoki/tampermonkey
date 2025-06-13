@@ -247,6 +247,8 @@
         
         let restudyCount = 0;
         let startStudyCount = 0;
+        let continueStudyCount = 0;
+        let firstContinueStudyItem = null;
         let firstStartStudyItem = null;
         
         items.forEach((item, index) => {
@@ -272,6 +274,17 @@
                 if (text === '重新学习') {
                     restudyCount++;
                     console.log(`✅ 找到重新学习项目: item ${index + 1}`);
+                } else if (text === '继续学习') {
+                    continueStudyCount++;
+                    console.log(`🔄 找到继续学习项目: item ${index + 1}`);
+                    
+                    // 记录第一个继续学习项目
+                    if (!firstContinueStudyItem) {
+                        firstContinueStudyItem = {
+                            element: lastI,
+                            index: index + 1
+                        };
+                    }
                 } else if (text === '开始学习') {
                     startStudyCount++;
                     console.log(`🎯 找到开始学习项目: item ${index + 1}`);
@@ -289,19 +302,25 @@
             }
         });
         
-        console.log(`📊 统计结果: ${restudyCount} 个"重新学习", ${startStudyCount} 个"开始学习"`);
+        console.log(`📊 统计结果: ${restudyCount} 个"重新学习", ${continueStudyCount} 个"继续学习", ${startStudyCount} 个"开始学习"`);
         
-        // 优先点击第一个开始学习项目
-        if (firstStartStudyItem) {
+        // 优先级：继续学习 > 开始学习
+        if (firstContinueStudyItem) {
+            console.log(`🖱️ 准备点击第一个继续学习项目: item ${firstContinueStudyItem.index}`);
+            setTimeout(() => {
+                firstContinueStudyItem.element.click();
+                console.log(`✅ 已点击第一个继续学习项目: item ${firstContinueStudyItem.index}`);
+            }, 1000);
+        } else if (firstStartStudyItem) {
             console.log(`🖱️ 准备点击第一个开始学习项目: item ${firstStartStudyItem.index}`);
             setTimeout(() => {
                 firstStartStudyItem.element.click();
                 console.log(`✅ 已点击第一个开始学习项目: item ${firstStartStudyItem.index}`);
             }, 1000);
-        } else if (startStudyCount === 0 && restudyCount === 0) {
-            console.log('🔍 没有找到"开始学习"或"重新学习"项目');
+        } else if (startStudyCount === 0 && restudyCount === 0 && continueStudyCount === 0) {
+            console.log('🔍 没有找到"开始学习"、"继续学习"或"重新学习"项目');
         } else {
-            console.log('💡 没有找到"开始学习"项目，只有"重新学习"项目');
+            console.log('💡 没有找到"开始学习"或"继续学习"项目，只有"重新学习"项目');
         }
     }
 
