@@ -205,9 +205,10 @@
         // 设置为静音模式后播放
         videoElement.muted = true;
         console.log('🔇 视频已设置为静音');
-        videoElement.play();
+        
         // 视频两倍速
         videoElement.playbackRate = 2.0;
+        videoElement.play();
         console.log('🎥 视频已设置为两倍速播放');
         // 监听视频播放结束事件
         videoElement.addEventListener('ended', () => {
