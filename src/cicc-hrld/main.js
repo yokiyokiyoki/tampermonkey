@@ -102,6 +102,7 @@
     
     if (!chapterBoxes.length) {
       console.log("❌ 未找到 chapter-list-box 元素");
+      location.reload();
       return;
     }
 
