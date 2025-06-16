@@ -78,25 +78,9 @@
   function checkChapterList() {
     console.log("🔍 开始检测章节列表...");
 
-    const chapterList = document.querySelector(".chapter-list");
-    if (!chapterList) {
-      console.log("❌ 未找到 chapter-list 元素");
-      return;
-    }
-
-    const tabsContItem = chapterList.querySelector(".tabs-cont-item");
-    if (!tabsContItem) {
-      console.log("❌ 未找到 tabs-cont-item 元素");
-      return;
-    }
-
-    const sectionArrow = tabsContItem.querySelector(".section-arrow");
-    if (!sectionArrow) {
-      console.log("❌ 未找到 section-arrow 元素");
-      return;
-    }
-
-    const chapterListBox = sectionArrow.querySelectorAll(".chapter-list-box");
+    const chapterListBox = document.querySelectorAll(
+      ".chapter-list .tabs-cont-item .section-arrow .chapter-list-box"
+    );
     if (!chapterListBox) {
       console.log("❌ 未找到 chapter-list-box 元素");
       return;
@@ -107,60 +91,53 @@
     chapterListBox.forEach((cb, chapterIndex) => {
       if (hasClicked) return; // 如果已经点击过，直接跳过
 
-      const chapterRights = cb.querySelector(".chapter-right");
-
-      const sectionItems = chapterRights.querySelectorAll(".section-item");
+      const sectionItems = cb.querySelectorAll(".chapter-right .section-item");
       console.log(`  📦 找到 ${sectionItems.length} 个 section-item`);
+      if (sectionItems.length === 0) {
+        console.log(`  ❌ chapter-right ${chapterIndex + 1} 没有 section-item`);
+        return; // 如果没有 section-item，直接跳过
+      }
+      const firstSectionItem = sectionItems[0];
+      console.log(
+        `    📄 检查第一个 section-item (总共${sectionItems.length}个)`
+      );
 
-      if (sectionItems.length > 0) {
-        const firstSectionItem = sectionItems[0];
+      const items = firstSectionItem.querySelectorAll(".item");
+      console.log(`      📦 找到 ${items.length} 个 item`);
+
+      const lastItem = items[items.length - 1];
+      const span = lastItem.querySelector("span");
+
+      if (span) {
+        const text = span.textContent.trim();
         console.log(
-          `    📄 检查第一个 section-item (总共${sectionItems.length}个)`
+          `      ✅ chapter-right ${
+            chapterIndex + 1
+          } 第一个 section-item 的最后一个 item 的 span 文字: "${text}"`
         );
 
-        const items = firstSectionItem.querySelectorAll(".item");
-        console.log(`      📦 找到 ${items.length} 个 item`);
-
-        const lastItem = items[items.length - 1];
-        const span = lastItem.querySelector("span");
-
-        if (span) {
-          const text = span.textContent.trim();
-          console.log(
-            `      ✅ chapter-right ${
-              chapterIndex + 1
-            } 第一个 section-item 的最后一个 item 的 span 文字: "${text}"`
-          );
-
-          // 检查是否为需要点击的状态
-          if (text === "学习中" || text === "未开始") {
-            console.log(`      🖱️ 发现可点击状态: "${text}"，准备点击...`);
-            hasClicked = true; // 设置标志位
+        // 检查是否为需要点击的状态
+        if (text === "学习中" || text === "未开始") {
+          console.log(`      🖱️ 发现可点击状态: "${text}"，准备点击...`);
+          hasClicked = true; // 设置标志位
+          setTimeout(() => {
+            lastItem.click();
+            console.log(
+              `      ✅ 已点击 chapter-right ${
+                chapterIndex + 1
+              } 第一个 section-item 的最后一个 item`
+            );
             setTimeout(() => {
-              lastItem.click();
-              console.log(
-                `      ✅ 已点击 chapter-right ${
-                  chapterIndex + 1
-                } 第一个 section-item 的最后一个 item`
-              );
-              setTimeout(() => {
-                checkVideoStatus();
-              }, 5 * 1000);
+              checkVideoStatus();
             }, 5 * 1000);
-            return; // 点击后退出，避免重复点击
-          }
-        } else {
-          console.log(
-            `      ⚠️ chapter-right ${
-              chapterIndex + 1
-            } 第一个 section-item 的最后一个 item 没有 span 元素`
-          );
-          location.reload(); // 刷新页面
-          return;
+          }, 5 * 1000);
+          return; // 点击后退出，避免重复点击
         }
       } else {
         console.log(
-          `  🔍 chapter-right ${chapterIndex + 1} 没有找到任何 section-item`
+          `      ⚠️ chapter-right ${
+            chapterIndex + 1
+          } 第一个 section-item 的最后一个 item 没有 span 元素`
         );
         location.reload(); // 刷新页面
         return;
@@ -178,15 +155,13 @@
         const firstSectionItem = sectionItems[0];
         const items = firstSectionItem.querySelectorAll(".item");
 
-        if (items.length >= 3) {
-          const lastItem = items[items.length - 1];
-          const span = lastItem.querySelector("span");
+        const lastItem = items[items.length - 1];
+        const span = lastItem.querySelector("span");
 
-          if (span) {
-            const text = span.textContent.trim();
-            if (text === "学习中" || text === "未开始") {
-              allCompleted = false;
-            }
+        if (span) {
+          const text = span.textContent.trim();
+          if (text === "学习中" || text === "未开始") {
+            allCompleted = false;
           }
         }
       }
@@ -253,7 +228,9 @@
     console.log("🔍 开始检测学习项目...");
 
     // 直接查找所有可操作的项目
-    const actionItems = document.querySelectorAll('.catalog-state-info .item .operation i:last-child');
+    const actionItems = document.querySelectorAll(
+      ".catalog-state-info .item .operation i:last-child"
+    );
     if (!actionItems.length) {
       console.log("❌ 未找到可操作项目");
       return;
@@ -268,7 +245,7 @@
     let firstStartStudyItem = null;
 
     actionItems.forEach((actionElement, index) => {
-      const textDiv = actionElement.querySelector('div');
+      const textDiv = actionElement.querySelector("div");
       if (!textDiv) {
         console.log(`⚠️ item ${index + 1} 没有文字div`);
         return;
@@ -286,7 +263,10 @@
           continueStudyCount++;
           console.log(`🔄 找到继续学习项目: item ${index + 1}`);
           if (!firstContinueStudyItem) {
-            firstContinueStudyItem = { element: actionElement, index: index + 1 };
+            firstContinueStudyItem = {
+              element: actionElement,
+              index: index + 1,
+            };
           }
           break;
         case "开始学习":
@@ -299,23 +279,37 @@
       }
     });
 
-    console.log(`📊 统计结果: ${restudyCount} 个"重新学习", ${continueStudyCount} 个"继续学习", ${startStudyCount} 个"开始学习"`);
+    console.log(
+      `📊 统计结果: ${restudyCount} 个"重新学习", ${continueStudyCount} 个"继续学习", ${startStudyCount} 个"开始学习"`
+    );
 
     // 优先级：继续学习 > 开始学习
     if (firstContinueStudyItem) {
-      console.log(`🖱️ 准备点击第一个继续学习项目: item ${firstContinueStudyItem.index}`);
+      console.log(
+        `🖱️ 准备点击第一个继续学习项目: item ${firstContinueStudyItem.index}`
+      );
       setTimeout(() => {
         firstContinueStudyItem.element.click();
-        console.log(`✅ 已点击第一个继续学习项目: item ${firstContinueStudyItem.index}`);
+        console.log(
+          `✅ 已点击第一个继续学习项目: item ${firstContinueStudyItem.index}`
+        );
       }, 1000);
     } else if (firstStartStudyItem) {
-      console.log(`🖱️ 准备点击第一个开始学习项目: item ${firstStartStudyItem.index}`);
+      console.log(
+        `🖱️ 准备点击第一个开始学习项目: item ${firstStartStudyItem.index}`
+      );
       setTimeout(() => {
         firstStartStudyItem.element.click();
-        console.log(`✅ 已点击第一个开始学习项目: item ${firstStartStudyItem.index}`);
+        console.log(
+          `✅ 已点击第一个开始学习项目: item ${firstStartStudyItem.index}`
+        );
       }, 1000);
-    } else if (startStudyCount === 0 && restudyCount === 0 && continueStudyCount === 0) {
-      console.log('🔍 没有找到任何学习项目');
+    } else if (
+      startStudyCount === 0 &&
+      restudyCount === 0 &&
+      continueStudyCount === 0
+    ) {
+      console.log("🔍 没有找到任何学习项目");
     } else {
       console.log('💡 只有"重新学习"项目，暂不自动点击');
     }
