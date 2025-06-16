@@ -134,8 +134,10 @@
                             setTimeout(() => {
                                 lastItem.click();
                                 console.log(`      ✅ 已点击 chapter-right ${chapterIndex + 1} 第一个 section-item 的最后一个 item`);
-                                checkVideoStatus();
-                            }, 10 * 1000);
+                                setTimeout(()=>{
+                                    checkVideoStatus();
+                                }, 5 * 1000);
+                            }, 5 * 1000);
                             return; // 点击后退出，避免重复点击
                         }
                     } else {
