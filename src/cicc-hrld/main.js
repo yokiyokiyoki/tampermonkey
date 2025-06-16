@@ -135,17 +135,23 @@
                                 lastItem.click();
                                 console.log(`      ✅ 已点击 chapter-right ${chapterIndex + 1} 第一个 section-item 的最后一个 item`);
                                 checkVideoStatus();
-                            }, 1000);
+                            }, 10 * 1000);
                             return; // 点击后退出，避免重复点击
                         }
                     } else {
                         console.log(`      ⚠️ chapter-right ${chapterIndex + 1} 第一个 section-item 的最后一个 item 没有 span 元素`);
+                        location.reload(); // 刷新页面
+                        return;
                     }
                 } else {
                     console.log(`      ⚠️ chapter-right ${chapterIndex + 1} 第一个 section-item 的 item 数量少于 3 个`);
+                    location.reload(); // 刷新页面
+                    return;
                 }
             } else {
                 console.log(`  🔍 chapter-right ${chapterIndex + 1} 没有找到任何 section-item`);
+                location.reload(); // 刷新页面
+                return;
             }
         });
         
@@ -201,6 +207,7 @@
             console.log('❌ 未找到 video 元素');
             return;
         }
+        console.log(videoElement,'视频元素已找到');
         console.log(`🎥 视频状态: ${videoElement.readyState}`);
         // 设置为静音模式后播放
         videoElement.muted = true;
