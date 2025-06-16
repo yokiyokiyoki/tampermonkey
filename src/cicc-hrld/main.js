@@ -74,109 +74,72 @@
     }, 10000);
   }
 
+  // 获取章节学习状态
+  function getChapterStatus(chapterBox) {
+    const sectionItems = chapterBox.querySelectorAll(".chapter-right .section-item");
+    if (sectionItems.length === 0) return null;
+
+    const firstSection = sectionItems[0];
+    const items = firstSection.querySelectorAll(".item");
+    if (items.length === 0) return null;
+
+    const lastItem = items[items.length - 1];
+    const span = lastItem.querySelector("span");
+    
+    return span ? {
+      status: span.textContent.trim(),
+      element: lastItem
+    } : null;
+  }
+
   // 检测章节列表
   function checkChapterList() {
     console.log("🔍 开始检测章节列表...");
 
-    const chapterListBox = document.querySelectorAll(
+    const chapterBoxes = document.querySelectorAll(
       ".chapter-list .tabs-cont-item .section-arrow .chapter-list-box"
     );
-    if (!chapterListBox) {
+    
+    if (!chapterBoxes.length) {
       console.log("❌ 未找到 chapter-list-box 元素");
       return;
     }
 
-    let hasClicked = false; // 添加标志位，确保只点击一次
-
-    chapterListBox.forEach((cb, chapterIndex) => {
-      if (hasClicked) return; // 如果已经点击过，直接跳过
-
-      const sectionItems = cb.querySelectorAll(".chapter-right .section-item");
-      console.log(`  📦 找到 ${sectionItems.length} 个 section-item`);
-      if (sectionItems.length === 0) {
-        console.log(`  ❌ chapter-right ${chapterIndex + 1} 没有 section-item`);
-        return; // 如果没有 section-item，直接跳过
-      }
-      const firstSectionItem = sectionItems[0];
-      console.log(
-        `    📄 检查第一个 section-item (总共${sectionItems.length}个)`
-      );
-
-      const items = firstSectionItem.querySelectorAll(".item");
-      console.log(`      📦 找到 ${items.length} 个 item`);
-
-      const lastItem = items[items.length - 1];
-      const span = lastItem.querySelector("span");
-
-      if (span) {
-        const text = span.textContent.trim();
-        console.log(
-          `      ✅ chapter-right ${
-            chapterIndex + 1
-          } 第一个 section-item 的最后一个 item 的 span 文字: "${text}"`
-        );
-
-        // 检查是否为需要点击的状态
-        if (text === "学习中" || text === "未开始") {
-          console.log(`      🖱️ 发现可点击状态: "${text}"，准备点击...`);
-          hasClicked = true; // 设置标志位
-          setTimeout(() => {
-            lastItem.click();
-            console.log(
-              `      ✅ 已点击 chapter-right ${
-                chapterIndex + 1
-              } 第一个 section-item 的最后一个 item`
-            );
-            setTimeout(() => {
-              checkVideoStatus();
-            }, 5 * 1000);
-          }, 5 * 1000);
-          return; // 点击后退出，避免重复点击
-        }
-      } else {
-        console.log(
-          `      ⚠️ chapter-right ${
-            chapterIndex + 1
-          } 第一个 section-item 的最后一个 item 没有 span 元素`
-        );
-        location.reload(); // 刷新页面
+    // 查找第一个可点击的章节
+    for (const [index, box] of chapterBoxes.entries()) {
+      const chapterInfo = getChapterStatus(box);
+      
+      if (!chapterInfo) {
+        console.log(`⚠️ 章节 ${index + 1} 状态异常，刷新页面`);
+        location.reload();
         return;
       }
-    });
 
-    // 检查是否所有章节都已完成学习
-    let allCompleted = true;
+      console.log(`📖 章节 ${index + 1} 状态: "${chapterInfo.status}"`);
 
-    chapterListBox.forEach((cb) => {
-      const chapterRights = cb.querySelector(".chapter-right");
-      const sectionItems = chapterRights.querySelectorAll(".section-item");
-
-      if (sectionItems.length > 0) {
-        const firstSectionItem = sectionItems[0];
-        const items = firstSectionItem.querySelectorAll(".item");
-
-        const lastItem = items[items.length - 1];
-        const span = lastItem.querySelector("span");
-
-        if (span) {
-          const text = span.textContent.trim();
-          if (text === "学习中" || text === "未开始") {
-            allCompleted = false;
-          }
-        }
+      // 点击第一个未完成的章节
+      if (chapterInfo.status === "学习中" || chapterInfo.status === "未开始") {
+        console.log(`🖱️ 点击章节 ${index + 1}...`);
+        setTimeout(() => {
+          chapterInfo.element.click();
+          setTimeout(checkVideoStatus, 5000);
+        }, 5000);
+        return;
       }
+    }
+
+    // 检查是否全部完成
+    const allCompleted = Array.from(chapterBoxes).every(box => {
+      const info = getChapterStatus(box);
+      return info && info.status !== "学习中" && info.status !== "未开始";
     });
 
-    if (allCompleted && chapterListBox.length > 0) {
+    if (allCompleted) {
       console.log("🎉 全部学习完成！");
-      // 找到sessionStorage中的课程详情页链接
       const courseDetailPage = sessionStorage.getItem("courseDetailPage");
       if (courseDetailPage) {
         console.log("🔗 跳转到课程详情页:", courseDetailPage);
-        // 跳转到课程详情页
-        setTimeout(() => {
-          window.location.href = courseDetailPage;
-        }, 1000);
+        setTimeout(() => window.location.href = courseDetailPage, 1000);
       } else {
         console.log("❌ 未找到课程详情页链接");
       }
