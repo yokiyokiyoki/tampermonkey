@@ -188,7 +188,6 @@
       ".chapter-list .tabs-cont-item .section-arrow .chapter-list-box.focus"
     );
     if (!activeChapterBox) return false;
-    console.log(activeChapterBox,'获取当前章节盒子');
     const info = getChapterStatus(activeChapterBox);
     if (!info) return false;
     console.log(`当前章节状态: ${info.status}`);
