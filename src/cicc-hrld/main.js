@@ -128,7 +128,12 @@
         console.log(`🖱️ 点击章节 ${index + 1}...`);
         setTimeout(() => {
           chapterInfo.element.click();
-          setTimeout(checkVideoStatus, 5000);
+          setTimeout(() => {
+            const videoElement = document.querySelector("video");
+            // 是否模拟点击
+            videoElement.dataset.simulateClick = "true";
+            checkVideoStatus();
+          }, 5000);
         }, 5000);
         return;
       }
@@ -226,6 +231,10 @@
       if (isVideoCompletedStatus) {
         clearInterval(intervalId);
         console.log("🎉 视频已完成播放");
+        if (videoElement.dataset.simulateClick === "true") {
+          console.log(" 已经模拟点击了视频");
+          location.reload();
+        }
       } else {
         console.log("当前章节未完成，继续播放视频");
         setupVideoPlayback(videoElement);
