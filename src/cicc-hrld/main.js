@@ -72,6 +72,7 @@
     setTimeout(() => {
       checkChapterList();
     }, 10000);
+    
   }
 
   // 获取章节学习状态
@@ -102,7 +103,6 @@
     
     if (!chapterBoxes.length) {
       console.log("❌ 未找到 chapter-list-box 元素");
-      location.reload();
       return;
     }
 
@@ -147,6 +147,58 @@
     }
   }
 
+  // 设置视频播放配置
+  function setupVideoPlayback(videoElement, playbackRate = 2.0, muted = true) {
+    if (videoElement.readyState !== 4) return false;
+
+    console.log("🎥 视频已准备好播放");
+    
+    if (videoElement.paused) {
+      videoElement.muted = muted;
+      videoElement.playbackRate = playbackRate;
+      videoElement.play();
+      console.log(`🎥 视频已设置为${muted ? '静音' : '有声'}${playbackRate}倍速播放`);
+    } else {
+      console.log("🎥 视频正在播放");
+      if (videoElement.playbackRate !== playbackRate) {
+        videoElement.playbackRate = playbackRate;
+        console.log(`🎥 视频速率已设置为${playbackRate}倍速`);
+      }
+    }
+    return true;
+  }
+
+  // 添加视频结束监听器
+  function addVideoEndListener(videoElement, onEnded) {
+    // 避免重复添加监听器
+    if (videoElement.dataset.listenerAdded) return;
+    
+    videoElement.addEventListener("ended", () => {
+      console.log("🎥 视频播放结束");
+      onEnded();
+    });
+    
+    videoElement.dataset.listenerAdded = "true";
+  }
+
+  // 获取播放视频时候的状态是否是已完成
+  function isVideoCompleted(videoElement) {
+    if (!videoElement) return false;
+    const activeChapterBox = document.querySelector(
+      ".chapter-list .tabs-cont-item .section-arrow .chapter-list-box.focus"
+    );
+    if (!activeChapterBox) return false;
+    console.log(activeChapterBox,'获取当前章节盒子');
+    const info = getChapterStatus(activeChapterBox);
+    if (!info) return false;
+    console.log(`当前章节状态: ${info.status}`);
+    if(info.status ==='已完成'){
+      console.log("当前章节已完成，视频无需再播放");
+      return true;
+    }
+    return videoElement.readyState === 4 && videoElement.currentTime >= videoElement.duration;
+  }
+
   // 检查视频状态
   function checkVideoStatus() {
     console.log("🔍 检查视频状态...");
@@ -156,20 +208,28 @@
       console.log("❌ 未找到 video 元素");
       return;
     }
-    console.log(videoElement, "视频元素已找到");
-    console.log(`🎥 视频状态: ${videoElement.readyState}`);
-    // 设置为静音模式后播放
-    videoElement.muted = true;
-    console.log("🔇 视频已设置为静音");
 
-    // 视频两倍速
-    videoElement.playbackRate = 2.0;
-    videoElement.play();
-    console.log("🎥 视频已设置为两倍速播放");
-    // 监听视频播放结束事件
-    videoElement.addEventListener("ended", () => {
-      console.log("🎥 视频播放结束");
-      // 刷新页面以加载下一个视频
+    console.log(`🎥 视频状态: ${videoElement.readyState}`);
+    
+    // 设置视频播放配置
+    setupVideoPlayback(videoElement);
+
+    // 轮询检测视频状态
+    const intervalId = setInterval(() => {
+      console.log("🔄 定时检查视频状态...");
+      
+      const isVideoCompletedStatus = isVideoCompleted(document.querySelector("video"));
+      if (isVideoCompletedStatus) {
+        clearInterval(intervalId);
+        console.log("🎉 视频已完成播放");
+      } else {
+        console.log("当前章节未完成，继续播放视频");
+        setupVideoPlayback(videoElement);
+      }
+    }, 5000);
+    
+    // 添加视频结束监听器
+    addVideoEndListener(videoElement, () => {
       setTimeout(() => {
         console.log("🔄 刷新页面以加载下一个视频");
         location.reload();
