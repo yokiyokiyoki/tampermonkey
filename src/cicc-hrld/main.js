@@ -103,6 +103,11 @@
     
     if (!chapterBoxes.length) {
       console.log("❌ 未找到 chapter-list-box 元素");
+      const timeId = setTimeout(() => {
+        console.log("🔄 重新尝试检测章节列表...");
+        checkChapterList();
+        clearTimeout(timeId);
+      }, 5 * 1000);
       return;
     }
 
