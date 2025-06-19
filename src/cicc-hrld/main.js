@@ -159,22 +159,21 @@
 
   // 设置视频播放配置
   function setupVideoPlayback(videoElement, playbackRate = 2.0, muted = true) {
-    if (videoElement.readyState !== 4) return false;
 
-    console.log("🎥 视频已准备好播放");
-    
-    if (videoElement.paused) {
-      videoElement.muted = muted;
-      videoElement.playbackRate = playbackRate;
-      videoElement.play();
-      console.log(`🎥 视频已设置为${muted ? '静音' : '有声'}${playbackRate}倍速播放`);
-    } else {
-      console.log("🎥 视频正在播放");
-      if (videoElement.playbackRate !== playbackRate) {
-        videoElement.playbackRate = playbackRate;
-        console.log(`🎥 视频速率已设置为${playbackRate}倍速`);
+    if (videoElement.readyState < 4){
+      const vjsNetSlowElement = document.querySelector(".vjs-netslow .slow-img");
+      if (vjsNetSlowElement) {
+        console.log("🎥 如果有重新加载按钮，那么点击");
+        vjsNetSlowElement?.click();
+        return false;
       }
     }
+
+    console.log("🎥 视频已准备好播放");
+    videoElement.muted = muted;
+    videoElement.playbackRate = playbackRate;
+    videoElement.play();
+    
     return true;
   }
 
@@ -225,7 +224,7 @@
 
     // 轮询检测视频状态
     const intervalId = setInterval(() => {
-      console.log("🔄 定时检查视频状态...");
+      console.log(`🔄 定时检查视频状态:${videoElement.readyState}...`);
       
       const isVideoCompletedStatus = isVideoCompleted(document.querySelector("video"));
       if (isVideoCompletedStatus) {
