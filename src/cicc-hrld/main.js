@@ -71,7 +71,13 @@
     // 检测章节列表信息
     setTimeout(() => {
       checkChapterList();
-    }, 10000);
+    }, 1*1000);
+
+
+    setTimeout(() => {
+      // 检查viewport内容是否为空
+      checkViewportContent()
+    }, 3 * 1000);
     
   }
 
@@ -158,8 +164,8 @@
   }
 
   // 设置视频播放配置
-  function setupVideoPlayback(videoElement, playbackRate = 2.0, muted = true) {
-
+  function setupVideoPlayback( playbackRate = 2.0, muted = true) {
+    const videoElement = document.querySelector("video");
     if (videoElement.readyState < 4){
       const vjsNetSlowElement = document.querySelector(".vjs-netslow .slow-img");
       if (vjsNetSlowElement) {
@@ -169,7 +175,7 @@
       }
     }
 
-    console.log("🎥 视频已准备好播放");
+    console.log("🎥 视频已准备好播放", videoElement.paused,videoElement.playbackRate);
     videoElement.muted = muted;
     videoElement.playbackRate = playbackRate;
     videoElement.play();
@@ -220,7 +226,7 @@
     console.log(`🎥 视频状态: ${videoElement.readyState}`);
     
     // 设置视频播放配置
-    setupVideoPlayback(videoElement);
+    setupVideoPlayback();
 
     // 轮询检测视频状态
     const intervalId = setInterval(() => {
@@ -236,7 +242,7 @@
         }
       } else {
         console.log("当前章节未完成，继续播放视频");
-        setupVideoPlayback(videoElement);
+        setupVideoPlayback();
       }
     }, 5000);
     
@@ -350,6 +356,36 @@
       console.log('💡 只有"重新学习"项目，暂不自动点击');
     }
   }
+
+  // 检查viewport内容是否为空
+function checkViewportContent() {
+  console.log("🔍 检查viewport内容...");
+  
+  // 查找指定的div元素
+  const viewportDiv = document.querySelector('div.viewport#content');
+  
+  if (!viewportDiv) {
+    console.log("❌ 未找到 class='viewport' id='content' 的div元素");
+    return false;
+  }
+  
+  // 检查是否有子元素
+  const hasChildren = viewportDiv.children.length > 0;
+  
+  console.log(`📊 viewport状态: 子元素数量=${viewportDiv.children.length}`);
+  
+  if (!hasChildren) {
+    console.log("⚠️ viewport内容为空，准备刷新页面...");
+    setTimeout(() => {
+      console.log("🔄 刷新页面");
+      location.reload();
+    }, 1000);
+    return true; // 表示触发了刷新
+  } else {
+    console.log("✅ viewport有内容，无需刷新");
+    return false; // 表示无需刷新
+  }
+}
 
   // 启动脚本
   init().catch(console.error);
