@@ -76,7 +76,7 @@
 
     setTimeout(() => {
       // 检查viewport内容是否为空
-      checkViewportContent()
+      checkViewportContent('div.viewport#content')
     }, 3 * 1000);
     
   }
@@ -263,6 +263,11 @@
     setTimeout(() => {
       checkRestudyItems();
     }, 12 * 1000);
+
+    setTimeout(() => {
+      // 检查viewport内容是否为空
+      checkViewportContent('div.page-main-wrapper')
+    }, 3 * 1000);
   }
 
   // 检测开始学习的项目
@@ -357,15 +362,19 @@
     }
   }
 
-  // 检查viewport内容是否为空
-function checkViewportContent() {
+  /**
+   * 检查viewport内容是否为空
+   * 支持传入的div元素选择器
+   * @returns {boolean} 返回是否触发了刷新
+   */
+function checkViewportContent(selector = 'div.viewport#content') {
   console.log("🔍 检查viewport内容...");
   
   // 查找指定的div元素
-  const viewportDiv = document.querySelector('div.viewport#content');
+  const viewportDiv = document.querySelector(selector);
   
   if (!viewportDiv) {
-    console.log("❌ 未找到 class='viewport' id='content' 的div元素");
+    console.log(`❌ 未找到 ${selector} 的div元素`);
     return false;
   }
   
