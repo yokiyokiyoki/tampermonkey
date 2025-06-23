@@ -375,7 +375,11 @@ function checkViewportContent(selector = 'div.viewport#content') {
   
   if (!viewportDiv) {
     console.log(`❌ 未找到 ${selector} 的div元素`);
-    return false;
+    setTimeout(() => {
+      console.log("🔄 刷新页面");
+      location.reload();
+    }, 1000);
+    return true; // 表示触发了刷新
   }
   
   // 检查是否有子元素
