@@ -5,6 +5,7 @@
 // @description  CICC HRLD 课程学习助手
 // @author       You
 // @match        https://hrld.cicc.com.cn/*
+// @match        https://www.sacedu.cn/*
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
