@@ -139,6 +139,7 @@
             const videoElement = document.querySelector("video");
             // 是否模拟点击
             videoElement.dataset.simulateClick = "true";
+            tryClickElement('.register-mask-layer .register-img');
             checkVideoStatus();
           }, 5000);
         }, 5000);
@@ -400,6 +401,23 @@ function checkViewportContent(selector = 'div.viewport#content') {
     return false; // 表示无需刷新
   }
 }
+
+  /**
+   * 尝试点击任意元素
+   * 默认是注册遮罩图片元素
+   * 目标选择器: .register-mask-layer .register-img
+   */
+  function tryClickElement(selector = '.register-mask-layer .register-img') {
+    const el = document.querySelector(selector);
+    if (!el) return;
+
+    try {
+      el.click();
+      console.log('✅ 已点击.register-mask-layer .register-img');
+    } catch (err) {
+      console.warn('⚠️ 点击.register-mask-layer .register-img失败:', err);
+    }
+  }
 
   // 启动脚本
   init().catch(console.error);
