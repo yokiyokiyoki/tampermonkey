@@ -1,0 +1,23 @@
+// ==UserScript==
+// @name         CICC 云分析告警通知
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  每隔一个小时将监控数据发送到飞书机器人
+// @author       yoki
+// @match        https://console.cloud.tencent.com/monitor/run/analysis*
+// @grant        GM_xmlhttpRequest
+// @grant        GM_notification
+// @run-at       document-end
+// ==/UserScript==
+(()=>{"use strict";function t(t,e){(null==e||e>t.length)&&(e=t.length);for(var n=0,o=Array(e);n<e;n++)o[n]=t[n];return o}function e(e,n){return function(t){if(Array.isArray(t))return t}(e)||function(t,e){var n=null==t?null:"undefined"!=typeof Symbol&&t[Symbol.iterator]||t["@@iterator"];if(null!=n){var o,r,a,i,c=[],l=!0,u=!1;try{if(a=(n=n.call(t)).next,0===e){if(Object(n)!==n)return;l=!1}else for(;!(l=(o=a.call(n)).done)&&(c.push(o.value),c.length!==e);l=!0);}catch(t){u=!0,r=t}finally{try{if(!l&&null!=n.return&&(i=n.return(),Object(i)!==i))return}finally{if(u)throw r}}return c}}(e,n)||function(e,n){if(e){if("string"==typeof e)return t(e,n);var o={}.toString.call(e).slice(8,-1);return"Object"===o&&e.constructor&&(o=e.constructor.name),"Map"===o||"Set"===o?Array.from(e):"Arguments"===o||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(o)?t(e,n):void 0}}(e,n)||function(){throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}
+// ==UserScript==
+// @name         CICC 云分析告警通知
+// @namespace    http://tampermonkey.net/
+// @version      1.0.0
+// @description  每隔一个小时将监控数据发送到飞书机器人
+// @author       You
+// @match        https://console.cloud.tencent.com/monitor/run/analysis*
+// @grant        GM_xmlhttpRequest
+// @grant        GM_notification
+// ==/UserScript==
+!function(){function t(t){!function(t){for(var n=(new Date).toLocaleString("zh-CN",{timeZone:"Asia/Shanghai",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}),o=["📊 **CICC 云分析监控报告**","⏰ 时间: ".concat(n),"","---"],r=0,a=Object.entries(t);r<a.length;r++){var i=e(a[r],2),c=i[0],l=i[1];o.push("**".concat(c,"**: ").concat(l.value)),l.compare&&o.push("   └ ".concat(l.compare))}o.push("","---","_数据每小时自动采集_"),o.join("\n")}(t);var r={msg_type:"interactive",card:{config:{wide_screen_mode:!0},header:{title:{tag:"plain_text",content:"📊 CICC 云分析监控报告"},template:"blue"},elements:[{tag:"div",text:{tag:"lark_md",content:n(t)}},{tag:"hr"},{tag:"note",elements:[{tag:"plain_text",content:"数据采集时间: ".concat((new Date).toLocaleString("zh-CN",{timeZone:"Asia/Shanghai"}))}]}]}};GM_xmlhttpRequest({method:"POST",url:"https://open.feishu.cn/open-apis/bot/v2/hook/f38e034a-78d0-4925-9079-7c44a3a9800b",headers:{"Content-Type":"application/json"},data:JSON.stringify(r),onload:function(t){console.log("[CICC Monitor] 飞书通知发送成功:",t.responseText),o("发送成功","监控数据已发送到飞书")},onerror:function(t){console.error("[CICC Monitor] 飞书通知发送失败:",t),o("发送失败","监控数据发送到飞书失败")}})}function n(t){for(var n=[],o=0,r=Object.entries(t);o<r.length;o++){var a=e(r[o],2),i=a[0],c=a[1],l=(parseInt(c.value)||0)>0?"🔴":"🟢";if(n.push("".concat(l," **").concat(i,"**: ").concat(c.value)),c.compare){var u="➖";c.compare.includes("↑")||c.compare.includes("up")?u="📈":(c.compare.includes("↓")||c.compare.includes("down"))&&(u="📉"),n.push("    ".concat(u," ").concat(c.compare))}}return n.join("\n")}function o(t,e){GM_notification({title:"[CICC Monitor] ".concat(t),text:e,timeout:3e3})}function r(){console.log("[CICC Monitor] 开始采集监控数据...");var e=function(){var t={};return document.querySelectorAll(".info-header.card .info-item").forEach(function(e){var n=e.querySelector(".title"),o=e.querySelector(".data"),r=e.querySelector(".compare-span");if(n&&o){var a=n.textContent.trim(),i=o.textContent.trim(),c=r?r.textContent.trim():"";t[a]={value:i,compare:c}}}),t}();0!==Object.keys(e).length?(console.log("[CICC Monitor] 采集到的数据:",e),t(e)):console.warn("[CICC Monitor] 未找到监控数据，可能页面结构已变化")}function a(){console.log("[CICC Monitor] 脚本已加载，将每隔 1 小时发送监控数据到飞书"),setTimeout(function(){r(),setInterval(r,36e5),console.log("[CICC Monitor] 定时任务已启动，间隔: 1 小时")},5e3)}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",a):a()}()})();
