@@ -4,7 +4,7 @@
 // @version      1.0.0
 // @description  每隔一个小时将监控数据发送到飞书机器人
 // @author       You
-// @match        https://console.cloud.tencent.com/monitor/run/analysis*
+// @match        https://console.cloud.tencent.com/monitor/rum/analysis*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_notification
 // @connect      open.feishu.cn

@@ -76,7 +76,7 @@ function getScriptMeta(scriptName) {
       description: '每隔一个小时将监控数据发送到飞书机器人',
       author: 'yoki',
       match: [
-        'https://console.cloud.tencent.com/monitor/run/analysis*'
+        'https://console.cloud.tencent.com/monitor/rum/analysis*'
       ],
       grants: [
         'GM_xmlhttpRequest',
