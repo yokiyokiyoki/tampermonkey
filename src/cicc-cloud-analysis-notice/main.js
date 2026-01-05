@@ -13,6 +13,13 @@
 (function () {
     'use strict';
 
+    console.log('==========================================');
+    console.log('[CICC Monitor] 🚀 脚本开始执行');
+    console.log('[CICC Monitor] 📍 当前 URL:', window.location.href);
+    console.log('[CICC Monitor] 📄 Document readyState:', document.readyState);
+    console.log('[CICC Monitor] ⏰ 时间:', new Date().toLocaleString('zh-CN'));
+    console.log('==========================================');
+
     // 飞书机器人 Webhook 地址
     const FEISHU_WEBHOOK_URL = 'https://open.feishu.cn/open-apis/bot/v2/hook/f38e034a-78d0-4925-9079-7c44a3a9800b';
 
@@ -24,10 +31,23 @@
      * @returns {Object} key-value 形式的监控数据
      */
     function extractMonitorData() {
+        console.log('[CICC Monitor] 📊 开始提取数据...');
         const data = {};
 
         // 选择所有监控卡片项
         const infoItems = document.querySelectorAll('.info-header.card .info-item');
+        console.log('[CICC Monitor] 🔍 找到 .info-header.card .info-item 元素数量:', infoItems.length);
+
+        // 如果没找到，尝试其他选择器
+        if (infoItems.length === 0) {
+            console.log('[CICC Monitor] ⚠️ 未找到元素，尝试其他选择器...');
+            const allInfoItems = document.querySelectorAll('.info-item');
+            console.log('[CICC Monitor] 🔍 找到 .info-item 元素数量:', allInfoItems.length);
+            const allCards = document.querySelectorAll('.info-header');
+            console.log('[CICC Monitor] 🔍 找到 .info-header 元素数量:', allCards.length);
+            const allDataElements = document.querySelectorAll('.data');
+            console.log('[CICC Monitor] 🔍 找到 .data 元素数量:', allDataElements.length);
+        }
 
         infoItems.forEach((item) => {
             // 获取标题
@@ -211,24 +231,33 @@
      * 初始化定时任务
      */
     function init() {
-        console.log('[CICC Monitor] 脚本已加载，将每隔 1 小时发送监控数据到飞书');
+        console.log('[CICC Monitor] 📌 init() 函数被调用');
+        console.log('[CICC Monitor] 🔄 脚本已加载，将每隔 1 小时发送监控数据到飞书');
 
         // 页面加载后等待 5 秒，确保动态内容加载完成
+        console.log('[CICC Monitor] ⏳ 等待 5 秒后开始首次采集...');
         setTimeout(() => {
+            console.log('[CICC Monitor] ⏰ 5 秒等待结束，开始首次采集');
             // 首次执行
             collectAndSend();
 
             // 设置定时任务
             setInterval(collectAndSend, INTERVAL_MS);
 
-            console.log('[CICC Monitor] 定时任务已启动，间隔: 1 小时');
+            console.log('[CICC Monitor] ✅ 定时任务已启动，间隔: 1 小时');
         }, 5000);
     }
 
     // 等待页面加载完成后初始化
+    console.log('[CICC Monitor] 🔍 检查 document.readyState:', document.readyState);
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        console.log('[CICC Monitor] 📄 页面仍在加载，添加 DOMContentLoaded 监听器');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[CICC Monitor] 📄 DOMContentLoaded 事件触发');
+            init();
+        });
     } else {
+        console.log('[CICC Monitor] 📄 页面已加载完成，直接调用 init()');
         init();
     }
 
