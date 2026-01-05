@@ -69,6 +69,20 @@ function getScriptMeta(scriptName) {
         'GM_xmlhttpRequest',
         'GM_registerMenuCommand'
       ]
+    },
+    'cicc-cloud-analysis-notice': {
+      name: 'CICC 云分析告警通知',
+      version: '1.0',
+      description: '每隔一个小时将监控数据发送到飞书机器人',
+      author: 'yoki',
+      match: [
+        'https://console.cloud.tencent.com/monitor/run/analysis*'
+      ],
+      grants: [
+        'GM_xmlhttpRequest',
+        'GM_notification'
+      ],
+      connect: ['open.feishu.cn']
     }
     // 可以在这里添加更多脚本的元数据
   };
@@ -87,42 +101,49 @@ function getScriptMeta(scriptName) {
 function getEntries() {
   const entries = {};
   const srcDir = path.resolve(__dirname, 'src');
-  
+
   // 查找所有一级目录下的main.js文件作为入口
   const mainFiles = glob.sync(path.join(srcDir, '*/main.js'));
-  
+
   mainFiles.forEach(file => {
     const dirName = path.basename(path.dirname(file));
     const entryName = `${dirName}`;
     entries[entryName] = file;
   });
-  
+
   return entries;
 }
 
 // 根据入口名生成UserScript头信息
 function generateBanner(entryName) {
   const meta = getScriptMeta(entryName);
-  
+
   let banner = `// ==UserScript==\n`;
   banner += `// @name         ${meta.name}\n`;
   banner += `// @namespace    http://tampermonkey.net/\n`;
   banner += `// @version      ${meta.version}\n`;
   banner += `// @description  ${meta.description}\n`;
   banner += `// @author       ${meta.author}\n`;
-  
+
   // 添加所有匹配规则
   meta.match.forEach(match => {
     banner += `// @match        ${match}\n`;
   });
-  
+
   // 添加所有授权
   if (meta.grants && meta.grants.length) {
     meta.grants.forEach(grant => {
       banner += `// @grant        ${grant}\n`;
     });
   }
-  
+
+  // 添加跨域连接配置
+  if (meta.connect && meta.connect.length) {
+    meta.connect.forEach(domain => {
+      banner += `// @connect      ${domain}\n`;
+    });
+  }
+
   banner += `// @run-at       document-end\n`;
   banner += `// ==/UserScript==\n\n`;
   return banner;
